@@ -125,6 +125,8 @@ const localApi: Api = {
     const newUser: UserData = {
       username,
       uniqueId,
+      companyName: '',
+      phoneNumber: '',
       itemTemplates: useDefaultData ? [...DEFAULT_ITEM_TEMPLATES] : [],
       workTemplates: useDefaultData ? [...DEFAULT_WORK_TEMPLATES] : [],
       roomRenovationTemplates: useDefaultData ? [...DEFAULT_ROOM_RENOVATION_TEMPLATES] : [],
@@ -535,6 +537,8 @@ export const mockApi = {
     const newUser: UserData = {
       username,
       uniqueId,
+      companyName: '',
+      phoneNumber: '',
       itemTemplates: useDefaultData ? [...DEFAULT_ITEM_TEMPLATES] : [],
       workTemplates: useDefaultData ? [...DEFAULT_WORK_TEMPLATES] : [],
       roomRenovationTemplates: useDefaultData ? [...DEFAULT_ROOM_RENOVATION_TEMPLATES] : [],

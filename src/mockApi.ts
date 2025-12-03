@@ -10,7 +10,7 @@ export const mockApi = {
     return uuidv4().slice(0, 8);
   },
 
-  // Tworzenie nowego użytkownika
+  // Create new user
   createUser: (username: string): UserData => {
     const users = mockApi.getAllUsers();
     const uniqueId = mockApi.generateUserId();
@@ -18,6 +18,8 @@ export const mockApi = {
     const newUser: UserData = {
       username,
       uniqueId,
+      companyName: '',
+      phoneNumber: '',
       itemTemplates: [...DEFAULT_ITEM_TEMPLATES],
       workTemplates: [...DEFAULT_WORK_TEMPLATES],
       roomRenovationTemplates: [...DEFAULT_ROOM_RENOVATION_TEMPLATES],

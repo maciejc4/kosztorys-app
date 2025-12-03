@@ -4,7 +4,7 @@ import { mockApi, getApiConfig } from './api';
 import { 
   UserData, ItemTemplate, WorkTemplate, RoomRenovationTemplate,
   Estimate, EstimateItem, EstimateRoom, WorkMaterial,
-  UnitType, RoomType, UNIT_LABELS, ROOM_LABELS 
+  UnitType, RoomType, UNIT_LABELS, ROOM_LABELS, DEFAULT_ROOM_NAMES
 } from './types';
 import { generatePDF, PDFDetailLevel } from './pdfGenerator';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,7 +13,7 @@ import { queueOperation, initSyncService } from './syncService';
 import './i18n';
 import { changeLanguage, SUPPORTED_LANGUAGES, getCurrentLanguage } from './i18n';
 
-// Helper do formatowania pozostałego czasu
+// Helper to format remaining time
 const formatRemainingTime = (ms: number): string => {
   const hours = Math.floor(ms / (1000 * 60 * 60));
   const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
@@ -256,7 +256,7 @@ const ItemTemplateModal: React.FC<{
   );
 });
 
-// Typ pozycji w szablonie pracy (robocizna lub materiał)
+// Work item type in work template (labor or material)
 interface WorkItem {
   itemTemplateId: string;
   quantityPerUnit: number;
@@ -1088,14 +1088,19 @@ const AddWorkModal: React.FC<{
 // ============ PDF Export Modal ============
 const PDFExportModal: React.FC<{
   estimate: Estimate;
-  companyName: string;
+  user: UserData;
   onClose: () => void;
-}> = ({ estimate, companyName, onClose }) => {
+}> = ({ estimate, user, onClose }) => {
   const { t } = useTranslation();
   const [detailLevel, setDetailLevel] = useState<PDFDetailLevel>('standard');
 
   const handleExport = () => {
-    generatePDF(estimate, companyName, { detailLevel, showMaterials: estimate.includeMaterials });
+    generatePDF(
+      estimate, 
+      user.username, 
+      { detailLevel, showMaterials: estimate.includeMaterials },
+      { companyName: user.companyName, phoneNumber: user.phoneNumber }
+    );
     onClose();
   };
 
@@ -1134,7 +1139,7 @@ const PDFExportModal: React.FC<{
   );
 };
 
-// ============ Estimate Editor ============
+// ============ Estimate Editor (Wizard) ============
 const EstimateEditor: React.FC<{
   user: UserData;
   estimate?: Estimate | null;
@@ -1143,25 +1148,44 @@ const EstimateEditor: React.FC<{
   onUserUpdate?: () => void;
 }> = ({ user, estimate, onSave, onCancel, onUserUpdate }) => {
   const { t } = useTranslation();
+  const isEditing = !!estimate;
+  
+  // Wizard step (1-4)
+  const [step, setStep] = useState(isEditing ? 4 : 1);
+  
+  // Step 1: Client data
   const [clientName, setClientName] = useState(estimate?.clientName || '');
   const [clientAddress, setClientAddress] = useState(estimate?.clientAddress || '');
   const [projectDescription, setProjectDescription] = useState(estimate?.projectDescription || '');
+  
+  // Step 2-3: Rooms
   const [rooms, setRooms] = useState<EstimateRoom[]>(estimate?.rooms || []);
   const [includeMaterials, setIncludeMaterials] = useState(estimate?.includeMaterials ?? true);
+  
+  // Step 4: Summary & options
   const [laborDiscount, setLaborDiscount] = useState(estimate?.laborDiscountPercent?.toString() || '0');
   const [materialDiscount, setMaterialDiscount] = useState(estimate?.materialDiscountPercent?.toString() || '0');
+  const [notes, setNotes] = useState(estimate?.notes || '');
   
-  const [showAddRoom, setShowAddRoom] = useState(false);
-  const [newRoomName, setNewRoomName] = useState('');
+  // Room adding state
   const [newRoomType, setNewRoomType] = useState<RoomType>('salon');
+  const [newRoomName, setNewRoomName] = useState(DEFAULT_ROOM_NAMES['salon']);
+  
+  // Work modal state
   const [showWorkModal, setShowWorkModal] = useState(false);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
 
+  // Update room name when type changes
+  const handleRoomTypeChange = (type: RoomType) => {
+    setNewRoomType(type);
+    setNewRoomName(DEFAULT_ROOM_NAMES[type]);
+  };
+
   const addRoom = () => {
-    if (!newRoomName.trim()) return;
-    setRooms([...rooms, { id: uuidv4(), name: newRoomName.trim(), roomType: newRoomType, items: [] }]);
-    setNewRoomName('');
-    setShowAddRoom(false);
+    const name = newRoomName.trim() || DEFAULT_ROOM_NAMES[newRoomType];
+    setRooms([...rooms, { id: uuidv4(), name, roomType: newRoomType, items: [] }]);
+    setNewRoomName(DEFAULT_ROOM_NAMES['salon']);
+    setNewRoomType('salon');
   };
 
   const removeRoom = (id: string) => {
@@ -1233,6 +1257,7 @@ const EstimateEditor: React.FC<{
       clientName: clientName.trim(),
       clientAddress: clientAddress.trim(),
       projectDescription: projectDescription.trim(),
+      notes: notes.trim(),
       rooms,
       includeMaterials,
       laborDiscountPercent: parseFloat(laborDiscount) || 0,
@@ -1242,239 +1267,495 @@ const EstimateEditor: React.FC<{
     });
   };
 
+  const canGoNext = () => {
+    if (step === 1) return clientName.trim().length > 0;
+    if (step === 2) return rooms.length > 0;
+    if (step === 3) return rooms.some(r => r.items.length > 0);
+    return true;
+  };
+
   const activeRoom = rooms.find(r => r.id === activeRoomId);
 
+  // Step indicator component
+  const StepIndicator = () => (
+    <div className="wizard-steps">
+      {[1, 2, 3, 4].map(s => (
+        <div key={s} className={`wizard-step ${step === s ? 'active' : ''} ${step > s ? 'completed' : ''}`}>
+          <div className="wizard-step-number">{step > s ? '✓' : s}</div>
+          <div className="wizard-step-label">
+            {s === 1 && t('estimates.wizardStep1Title')}
+            {s === 2 && t('estimates.wizardStep2Title')}
+            {s === 3 && t('estimates.wizardStep3Title')}
+            {s === 4 && t('estimates.wizardStep4Title')}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Navigation buttons
+  const WizardNav = () => (
+    <div className="wizard-nav">
+      {step > 1 && !isEditing && (
+        <button className="btn btn-secondary" onClick={() => setStep(step - 1)}>
+          ← {t('common.back')}
+        </button>
+      )}
+      <div style={{ flex: 1 }} />
+      {step < 4 ? (
+        <button 
+          className="btn btn-primary" 
+          onClick={() => setStep(step + 1)}
+          disabled={!canGoNext()}
+        >
+          {t('common.next')} →
+        </button>
+      ) : (
+        <button className="btn btn-success" onClick={handleSave}>
+          💾 {t('common.save')}
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <div>
-      {/* Client Info */}
-      <div className="card">
-        <div className="card-header"><h2 className="card-title">👤 {t('estimates.clientData')}</h2></div>
-        <div className="card-body">
-          <div className="form-group">
-            <label className="form-label">{t('estimates.clientName')} *</label>
-            <input type="text" className="form-input" placeholder={t('estimates.clientNamePlaceholder')} value={clientName} onChange={(e) => setClientName(e.target.value)} />
+    <div className="wizard-container">
+      {!isEditing && <StepIndicator />}
+      
+      {/* Step 1: Client Data */}
+      {step === 1 && (
+        <div className="wizard-step-content">
+          <div className="wizard-step-header">
+            <h2>👤 {t('estimates.wizardStep1Title')}</h2>
+            <p className="text-gray">{t('estimates.wizardStep1Desc')}</p>
           </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">{t('estimates.clientAddress')}</label>
-              <input type="text" className="form-input" placeholder={t('estimates.clientAddressPlaceholder')} value={clientAddress} onChange={(e) => setClientAddress(e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">{t('estimates.projectDescription')}</label>
-              <input type="text" className="form-input" placeholder={t('estimates.projectDescriptionPlaceholder')} value={projectDescription} onChange={(e) => setProjectDescription(e.target.value)} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Options */}
-      <div className="card">
-        <div className="card-header"><h2 className="card-title">⚙️ {t('estimates.options')}</h2></div>
-        <div className="card-body">
-          <label className="form-checkbox mb-2">
-            <input type="checkbox" checked={includeMaterials} onChange={(e) => setIncludeMaterials(e.target.checked)} />
-            <span>{t('estimates.includeMaterials')}</span>
-          </label>
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">{t('estimates.laborDiscount')}</label>
-              <input type="number" className="form-input" value={laborDiscount} onChange={(e) => setLaborDiscount(e.target.value)} min="0" max="100" />
-            </div>
-            {includeMaterials && (
+          
+          <div className="card">
+            <div className="card-body">
               <div className="form-group">
-                <label className="form-label">{t('estimates.materialDiscount')}</label>
-                <input type="number" className="form-input" value={materialDiscount} onChange={(e) => setMaterialDiscount(e.target.value)} min="0" max="100" />
+                <label className="form-label">{t('estimates.clientName')} *</label>
+                <input 
+                  type="text" 
+                  className="form-input form-input-lg" 
+                  placeholder={t('estimates.clientNamePlaceholder')} 
+                  value={clientName} 
+                  onChange={(e) => setClientName(e.target.value)}
+                  autoFocus
+                />
+                <p className="form-hint">Imię i nazwisko lub nazwa firmy klienta</p>
               </div>
-            )}
+              
+              <div className="form-group">
+                <label className="form-label">{t('estimates.projectDescription')}</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder={t('estimates.projectDescriptionPlaceholder')} 
+                  value={projectDescription} 
+                  onChange={(e) => setProjectDescription(e.target.value)} 
+                />
+              </div>
+              
+              <div className="form-group">
+                <label className="form-label">{t('estimates.clientAddress')}</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder={t('estimates.clientAddressPlaceholder')} 
+                  value={clientAddress} 
+                  onChange={(e) => setClientAddress(e.target.value)} 
+                />
+              </div>
+              
+              <div className="form-group">
+                <label className="form-checkbox">
+                  <input type="checkbox" checked={includeMaterials} onChange={(e) => setIncludeMaterials(e.target.checked)} />
+                  <span>{t('estimates.includeMaterials')}</span>
+                </label>
+                <p className="form-hint">Jeśli zaznaczone, materiały zostaną automatycznie dodane do prac</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="wizard-nav">
+            <button className="btn btn-secondary" onClick={onCancel}>{t('common.cancel')}</button>
+            <div style={{ flex: 1 }} />
+            <button className="btn btn-primary" onClick={() => setStep(2)} disabled={!canGoNext()}>
+              {t('common.next')} →
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Rooms */}
-      <div className="card">
-        <div className="card-header">
-          <h2 className="card-title">🏠 {t('estimates.rooms')}</h2>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowAddRoom(true)}>+ {t('common.add')}</button>
-        </div>
-        {showAddRoom && (
-          <div className="card-body" style={{ borderBottom: '1px solid var(--gray-100)' }}>
-            <div className="form-row">
-              <div className="form-group">
+      {/* Step 2: Add Rooms */}
+      {step === 2 && (
+        <div className="wizard-step-content">
+          <div className="wizard-step-header">
+            <h2>🏠 {t('estimates.wizardStep2Title')}</h2>
+            <p className="text-gray">{t('estimates.wizardStep2Desc')}</p>
+          </div>
+          
+          {/* Room type selector */}
+          <div className="card">
+            <div className="card-body">
+              <p className="form-label">{t('estimates.selectRoomType')}</p>
+              <p className="form-hint mb-1">{t('estimates.selectRoomTypeHint')}</p>
+              
+              <div className="room-type-grid">
+                {Object.entries(ROOM_LABELS).map(([key, label]) => (
+                  <button
+                    key={key}
+                    className={`room-type-btn ${newRoomType === key ? 'active' : ''}`}
+                    onClick={() => handleRoomTypeChange(key as RoomType)}
+                  >
+                    <span className="room-type-icon">
+                      {key === 'lazienka' && '🚿'}
+                      {key === 'kuchnia' && '🍳'}
+                      {key === 'salon' && '🛋️'}
+                      {key === 'sypialnia' && '🛏️'}
+                      {key === 'korytarz' && '🚪'}
+                      {key === 'balkon' && '🌿'}
+                      {key === 'inne' && '📦'}
+                    </span>
+                    <span className="room-type-label">{label}</span>
+                  </button>
+                ))}
+              </div>
+              
+              <div className="form-group mt-2">
                 <label className="form-label">{t('estimates.roomName')}</label>
-                <input type="text" className="form-input" placeholder={t('estimates.roomNamePlaceholder')} value={newRoomName} onChange={(e) => setNewRoomName(e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">{t('templates.roomType')}</label>
-                <select className="form-select" value={newRoomType} onChange={(e) => setNewRoomType(e.target.value as RoomType)}>
-                  {Object.entries(ROOM_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="flex gap-1">
-              <button className="btn btn-secondary btn-sm" onClick={() => setShowAddRoom(false)}>{t('common.cancel')}</button>
-              <button className="btn btn-primary btn-sm" onClick={addRoom}>{t('common.add')}</button>
-            </div>
-          </div>
-        )}
-        {rooms.length === 0 && <div className="empty-state"><div className="empty-state-icon">🏠</div><p>{t('estimates.noRooms')}</p></div>}
-      </div>
-
-      {/* Room List */}
-      {rooms.map(room => {
-        const totals = calcRoom(room);
-        const templates = user.roomRenovationTemplates.filter(temp => temp.roomType === room.roomType);
-        return (
-          <div key={room.id} className="room-card">
-            <div className="room-card-header">
-              <div>
-                <div className="room-card-title">{room.name}</div>
-                <span className="badge badge-primary">{ROOM_LABELS[room.roomType]}</span>
-              </div>
-              <div className="flex gap-1">
-                <button className="btn btn-primary btn-sm" onClick={() => { setActiveRoomId(room.id); setShowWorkModal(true); }}>+ {t('estimates.addWork')}</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => removeRoom(room.id)}>🗑️</button>
-              </div>
-            </div>
-            
-            {templates.length > 0 && room.items.length === 0 && (
-              <div className="card-body" style={{ background: 'var(--gray-50)', borderBottom: '1px solid var(--gray-100)' }}>
-                <p className="text-xs text-gray mb-1">💡 {t('estimates.quickStart')}</p>
-                <div className="flex gap-1 flex-wrap">
-                  {templates.map(temp => <button key={temp.id} className="btn btn-secondary btn-sm" onClick={() => applyTemplate(room.id, temp.id)}>{temp.name}</button>)}
+                <div className="flex gap-1">
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder={t('estimates.roomNamePlaceholder')} 
+                    value={newRoomName} 
+                    onChange={(e) => setNewRoomName(e.target.value)} 
+                  />
+                  <button className="btn btn-primary" onClick={addRoom}>
+                    + {t('common.add')}
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
+          </div>
+          
+          {/* Added rooms list */}
+          {rooms.length > 0 && (
+            <div className="card mt-2">
+              <div className="card-header">
+                <h3 className="card-title">{t('estimates.rooms')} ({rooms.length})</h3>
+              </div>
+              {rooms.map(room => (
+                <div key={room.id} className="list-item">
+                  <div className="list-item-content">
+                    <div className="list-item-title">{room.name}</div>
+                    <span className="badge badge-primary">{ROOM_LABELS[room.roomType]}</span>
+                  </div>
+                  <button className="btn btn-ghost btn-sm" onClick={() => removeRoom(room.id)}>🗑️</button>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {rooms.length === 0 && (
+            <div className="card mt-2">
+              <div className="empty-state">
+                <div className="empty-state-icon">🏠</div>
+                <p>{t('estimates.addFirstRoom')}</p>
+              </div>
+            </div>
+          )}
+          
+          <WizardNav />
+        </div>
+      )}
 
-            {room.items.length === 0 ? (
-              <div className="empty-state" style={{ padding: '1rem' }}><p className="text-sm">{t('common.noItems')}</p></div>
-            ) : (
-              <>
-                {/* Grupowanie pozycji według prac */}
-                {(() => {
-                  const workGroups = new Map<string, EstimateItem[]>();
-                  const ungroupedItems: EstimateItem[] = [];
-                  
-                  room.items.forEach(item => {
-                    if (item.workId) {
-                      const existing = workGroups.get(item.workId) || [];
-                      existing.push(item);
-                      workGroups.set(item.workId, existing);
-                    } else {
-                      ungroupedItems.push(item);
-                    }
-                  });
-
-                  return (
-                    <>
-                      {Array.from(workGroups.entries()).map(([workId, items]) => {
-                        const laborItems = items.filter(i => i.category === 'labor');
-                        const materialItems = items.filter(i => i.category === 'material');
+      {/* Step 3: Add Works to Rooms */}
+      {step === 3 && (
+        <div className="wizard-step-content">
+          <div className="wizard-step-header">
+            <h2>🔧 {t('estimates.wizardStep3Title')}</h2>
+            <p className="text-gray">{t('estimates.wizardStep3Desc')}</p>
+          </div>
+          
+          {rooms.map(room => {
+            const totals = calcRoom(room);
+            const templates = user.roomRenovationTemplates.filter(temp => temp.roomType === room.roomType);
+            
+            return (
+              <div key={room.id} className="room-card">
+                <div className="room-card-header">
+                  <div>
+                    <div className="room-card-title">{room.name}</div>
+                    <span className="badge badge-primary">{ROOM_LABELS[room.roomType]}</span>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => { setActiveRoomId(room.id); setShowWorkModal(true); }}>
+                    + {t('estimates.addWork')}
+                  </button>
+                </div>
+                
+                {/* Quick start templates */}
+                {templates.length > 0 && room.items.length === 0 && (
+                  <div className="card-body" style={{ background: 'var(--primary-50)', borderBottom: '1px solid var(--primary-100)' }}>
+                    <p className="text-sm font-medium mb-1">💡 {t('estimates.useTemplate')}</p>
+                    <p className="text-xs text-gray mb-1">{t('estimates.applyTemplateHint')}</p>
+                    <div className="flex gap-1 flex-wrap">
+                      {templates.map(temp => (
+                        <button key={temp.id} className="btn btn-secondary btn-sm" onClick={() => applyTemplate(room.id, temp.id)}>
+                          {temp.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {room.items.length === 0 ? (
+                  <div className="empty-state" style={{ padding: '1rem' }}>
+                    <p className="text-sm">{t('estimates.noWorksInRoom')}</p>
+                    <p className="text-xs text-gray">{t('estimates.addWorksHint')}</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Group items by work */}
+                    {(() => {
+                      const workGroups = new Map<string, EstimateItem[]>();
+                      room.items.forEach(item => {
+                        if (item.workId) {
+                          const existing = workGroups.get(item.workId) || [];
+                          existing.push(item);
+                          workGroups.set(item.workId, existing);
+                        }
+                      });
+                      
+                      return Array.from(workGroups.entries()).map(([workId, items]) => {
                         const workName = items[0]?.workName || t('templates.works');
                         const workTotal = items.reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
+                        const laborItem = items.find(i => i.category === 'labor');
                         
                         return (
-                          <div key={workId} className="work-group">
+                          <div key={workId} className="work-group-compact">
                             <div className="work-group-header">
                               <span className="work-group-title">🔧 {workName}</span>
-                              <span className="work-group-total">{workTotal.toFixed(2)} {t('common.currency')}</span>
+                              <div className="flex items-center gap-1">
+                                {laborItem && (
+                                  <input 
+                                    type="number" 
+                                    className="item-row-input" 
+                                    value={laborItem.quantity} 
+                                    onChange={(e) => {
+                                      const newQty = parseFloat(e.target.value) || 0;
+                                      const oldQty = laborItem.quantity;
+                                      const ratio = oldQty > 0 ? newQty / oldQty : 1;
+                                      
+                                      // Update all items in this work group proportionally
+                                      items.forEach(item => {
+                                        updateItem(room.id, item.id, { 
+                                          quantity: item.category === 'labor' ? newQty : Math.ceil(item.quantity * ratio * 100) / 100
+                                        });
+                                      });
+                                    }}
+                                    min="0.1" 
+                                    step="0.1" 
+                                  />
+                                )}
+                                <span className="text-xs">{laborItem ? UNIT_LABELS[laborItem.unit] : ''}</span>
+                                <span className="work-group-total">{workTotal.toFixed(0)} {t('common.currency')}</span>
+                                <button className="btn btn-ghost btn-sm" onClick={() => {
+                                  items.forEach(item => removeItem(room.id, item.id));
+                                }}>×</button>
+                              </div>
                             </div>
-                            {laborItems.map(item => (
-                              <div key={item.id} className="item-row">
-                                <span className="item-row-name">{item.name}</span>
-                                <input type="number" className="item-row-input" value={item.quantity} onChange={(e) => updateItem(room.id, item.id, { quantity: parseFloat(e.target.value) || 0 })} />
-                                <span className="item-row-unit">{UNIT_LABELS[item.unit]}</span>
-                                <span>×</span>
-                                <input type="number" className="item-row-input" value={item.pricePerUnit} onChange={(e) => updateItem(room.id, item.id, { pricePerUnit: parseFloat(e.target.value) || 0 })} />
-                                <span className="item-row-total">= {(item.quantity * item.pricePerUnit).toFixed(2)} {t('common.currency')}</span>
-                                <button className="btn btn-ghost btn-sm" onClick={() => removeItem(room.id, item.id)}>×</button>
-                              </div>
-                            ))}
-                            {includeMaterials && materialItems.length > 0 && (
-                              <div className="work-materials">
-                                <div className="work-materials-label">📦 {t('common.materials')}:</div>
-                                {materialItems.map(item => (
-                                  <div key={item.id} className="item-row material-item">
-                                    <span className="item-row-name">{item.name}</span>
-                                    <input type="number" className="item-row-input" value={item.quantity} onChange={(e) => updateItem(room.id, item.id, { quantity: parseFloat(e.target.value) || 0 })} />
-                                    <span className="item-row-unit">{UNIT_LABELS[item.unit]}</span>
-                                    <span>×</span>
-                                    <input type="number" className="item-row-input" value={item.pricePerUnit} onChange={(e) => updateItem(room.id, item.id, { pricePerUnit: parseFloat(e.target.value) || 0 })} />
-                                    <span className="item-row-total">= {(item.quantity * item.pricePerUnit).toFixed(2)} {t('common.currency')}</span>
-                                    <button className="btn btn-ghost btn-sm" onClick={() => removeItem(room.id, item.id)}>×</button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
                           </div>
                         );
-                      })}
-                      
-                      {ungroupedItems.filter(i => i.category === 'labor').length > 0 && (
-                        <div className="room-section">
-                          <div className="room-section-header labor">🔧 {t('common.labor')}</div>
-                          {ungroupedItems.filter(i => i.category === 'labor').map(item => (
-                            <div key={item.id} className="item-row">
-                              <span className="item-row-name">{item.name}</span>
-                              <input type="number" className="item-row-input" value={item.quantity} onChange={(e) => updateItem(room.id, item.id, { quantity: parseFloat(e.target.value) || 0 })} />
-                              <span className="item-row-unit">{UNIT_LABELS[item.unit]}</span>
-                              <span>×</span>
-                              <input type="number" className="item-row-input" value={item.pricePerUnit} onChange={(e) => updateItem(room.id, item.id, { pricePerUnit: parseFloat(e.target.value) || 0 })} />
-                              <span className="item-row-total">= {(item.quantity * item.pricePerUnit).toFixed(2)} {t('common.currency')}</span>
-                              <button className="btn btn-ghost btn-sm" onClick={() => removeItem(room.id, item.id)}>×</button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {includeMaterials && ungroupedItems.filter(i => i.category === 'material').length > 0 && (
-                        <div className="room-section">
-                          <div className="room-section-header material">📦 {t('common.materials')}</div>
-                          {ungroupedItems.filter(i => i.category === 'material').map(item => (
-                            <div key={item.id} className="item-row">
-                              <span className="item-row-name">{item.name}</span>
-                              <input type="number" className="item-row-input" value={item.quantity} onChange={(e) => updateItem(room.id, item.id, { quantity: parseFloat(e.target.value) || 0 })} />
-                              <span className="item-row-unit">{UNIT_LABELS[item.unit]}</span>
-                              <span>×</span>
-                              <input type="number" className="item-row-input" value={item.pricePerUnit} onChange={(e) => updateItem(room.id, item.id, { pricePerUnit: parseFloat(e.target.value) || 0 })} />
-                              <span className="item-row-total">= {(item.quantity * item.pricePerUnit).toFixed(2)} {t('common.currency')}</span>
-                              <button className="btn btn-ghost btn-sm" onClick={() => removeItem(room.id, item.id)}>×</button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-                <div className="room-total">
-                  <span>{t('common.labor')}: {totals.labor.toFixed(2)} {t('common.currency')}{includeMaterials && ` | ${t('common.materials')}: ${totals.material.toFixed(2)} ${t('common.currency')}`}</span>
-                  <strong>{t('common.total')}: {totals.total.toFixed(2)} {t('common.currency')}</strong>
+                      });
+                    })()}
+                    
+                    <div className="room-total">
+                      <strong>{t('common.total')}: {totals.total.toFixed(2)} {t('common.currency')}</strong>
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+          
+          <WizardNav />
+        </div>
+      )}
+
+      {/* Step 4: Summary */}
+      {step === 4 && (
+        <div className="wizard-step-content">
+          <div className="wizard-step-header">
+            <h2>📋 {t('estimates.wizardStep4Title')}</h2>
+            <p className="text-gray">{t('estimates.wizardStep4Desc')}</p>
+          </div>
+          
+          {/* Client summary */}
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">👤 {t('estimates.clientData')}</h3>
+              {!isEditing && <button className="btn btn-ghost btn-sm" onClick={() => setStep(1)}>✏️</button>}
+            </div>
+            <div className="card-body">
+              <div className="flex justify-between">
+                <span className="text-gray">{t('estimates.clientName')}:</span>
+                <strong>{clientName}</strong>
+              </div>
+              {projectDescription && (
+                <div className="flex justify-between mt-1">
+                  <span className="text-gray">{t('estimates.projectDescription')}:</span>
+                  <span>{projectDescription}</span>
                 </div>
+              )}
+              {clientAddress && (
+                <div className="flex justify-between mt-1">
+                  <span className="text-gray">{t('estimates.clientAddress')}:</span>
+                  <span>{clientAddress}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Rooms summary */}
+          {rooms.map(room => {
+            const totals = calcRoom(room);
+            return (
+              <div key={room.id} className="card">
+                <div className="card-header">
+                  <h3 className="card-title">{room.name}</h3>
+                  <span className="badge badge-primary">{ROOM_LABELS[room.roomType]}</span>
+                </div>
+                <div className="card-body">
+                  {(() => {
+                    const workGroups = new Map<string, EstimateItem[]>();
+                    room.items.forEach(item => {
+                      if (item.workId) {
+                        const existing = workGroups.get(item.workId) || [];
+                        existing.push(item);
+                        workGroups.set(item.workId, existing);
+                      }
+                    });
+                    
+                    return Array.from(workGroups.entries()).map(([workId, items]) => {
+                      const workName = items[0]?.workName || t('templates.works');
+                      const laborItem = items.find(i => i.category === 'labor');
+                      const workTotal = items.reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
+                      
+                      return (
+                        <div key={workId} className="flex justify-between text-sm mb-1">
+                          <span>
+                            🔧 {workName} 
+                            <span className="text-gray text-xs"> ({laborItem?.quantity} {laborItem ? UNIT_LABELS[laborItem.unit] : ''})</span>
+                          </span>
+                          <strong>{workTotal.toFixed(2)} {t('common.currency')}</strong>
+                        </div>
+                      );
+                    });
+                  })()}
+                  <div className="flex justify-between mt-1 pt-1" style={{ borderTop: '1px solid var(--gray-100)' }}>
+                    <span className="font-semibold">{t('common.total')}:</span>
+                    <strong className="text-primary">{totals.total.toFixed(2)} {t('common.currency')}</strong>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          
+          {/* Discounts (optional) */}
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">💰 {t('estimates.discountsOptional')}</h3>
+            </div>
+            <div className="card-body">
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">{t('estimates.laborDiscount')}</label>
+                  <input type="number" className="form-input" value={laborDiscount} onChange={(e) => setLaborDiscount(e.target.value)} min="0" max="100" />
+                </div>
+                {includeMaterials && (
+                  <div className="form-group">
+                    <label className="form-label">{t('estimates.materialDiscount')}</label>
+                    <input type="number" className="form-input" value={materialDiscount} onChange={(e) => setMaterialDiscount(e.target.value)} min="0" max="100" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Notes (optional) */}
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">📝 {t('estimates.notesOptional')}</h3>
+            </div>
+            <div className="card-body">
+              <textarea 
+                className="form-input" 
+                rows={3} 
+                placeholder={t('common.notesPlaceholder')}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          {/* Final summary */}
+          <div className="summary-box">
+            <div className="summary-row">
+              <span>{t('common.labor')}:</span>
+              <span>{totalLabor.toFixed(2)} {t('common.currency')}</span>
+            </div>
+            {laborDiscountAmount > 0 && (
+              <div className="summary-row discount">
+                <span>{t('common.discount')} ({laborDiscount}%):</span>
+                <span>-{laborDiscountAmount.toFixed(2)} {t('common.currency')}</span>
+              </div>
+            )}
+            {includeMaterials && (
+              <>
+                <div className="summary-row">
+                  <span>{t('common.materials')}:</span>
+                  <span>{totalMaterial.toFixed(2)} {t('common.currency')}</span>
+                </div>
+                {materialDiscountAmount > 0 && (
+                  <div className="summary-row discount">
+                    <span>{t('common.discount')} ({materialDiscount}%):</span>
+                    <span>-{materialDiscountAmount.toFixed(2)} {t('common.currency')}</span>
+                  </div>
+                )}
               </>
             )}
+            <div className="summary-row total">
+              <span>{t('common.total').toUpperCase()}:</span>
+              <span className="value">{grandTotal.toFixed(2)} {t('common.currency')}</span>
+            </div>
           </div>
-        );
-      })}
-
-      {/* Summary */}
-      <div className="summary-box">
-        <div className="summary-row"><span>{t('common.labor')}:</span><span>{totalLabor.toFixed(2)} {t('common.currency')}</span></div>
-        {laborDiscountAmount > 0 && <div className="summary-row discount"><span>{t('common.discount')} ({laborDiscount}%):</span><span>-{laborDiscountAmount.toFixed(2)} {t('common.currency')}</span></div>}
-        {includeMaterials && (
-          <>
-            <div className="summary-row"><span>{t('common.materials')}:</span><span>{totalMaterial.toFixed(2)} {t('common.currency')}</span></div>
-            {materialDiscountAmount > 0 && <div className="summary-row discount"><span>{t('common.discount')} ({materialDiscount}%):</span><span>-{materialDiscountAmount.toFixed(2)} {t('common.currency')}</span></div>}
-          </>
-        )}
-        <div className="summary-row total"><span>{t('common.total').toUpperCase()}:</span><span className="value">{grandTotal.toFixed(2)} {t('common.currency')}</span></div>
-      </div>
-
-      <div className="flex gap-1 mt-2">
-        <button className="btn btn-secondary flex-1" onClick={onCancel}>{t('common.cancel')}</button>
-        <button className="btn btn-success" style={{ flex: 2 }} onClick={handleSave}>💾 {t('common.save')}</button>
-      </div>
-
+          
+          <div className="wizard-nav">
+            {!isEditing && (
+              <button className="btn btn-secondary" onClick={() => setStep(3)}>
+                ← {t('common.back')}
+              </button>
+            )}
+            <button className="btn btn-secondary" onClick={onCancel}>{t('common.cancel')}</button>
+            <div style={{ flex: 1 }} />
+            <button className="btn btn-success btn-lg" onClick={handleSave}>
+              💾 {t('common.save')}
+            </button>
+          </div>
+        </div>
+      )}
+      
       {showWorkModal && activeRoom && (
-        <AddWorkModal user={user} roomType={activeRoom.roomType} includeMaterials={includeMaterials}
-          onAdd={(items) => addItems(activeRoom.id, items)} onClose={() => { setShowWorkModal(false); setActiveRoomId(null); }} onUserUpdate={onUserUpdate} />
+        <AddWorkModal 
+          user={user} 
+          roomType={activeRoom.roomType} 
+          includeMaterials={includeMaterials}
+          onAdd={(items) => addItems(activeRoom.id, items)} 
+          onClose={() => { setShowWorkModal(false); setActiveRoomId(null); }} 
+          onUserUpdate={onUserUpdate} 
+        />
       )}
     </div>
   );
@@ -1541,19 +1822,29 @@ const EstimatesView: React.FC<{ user: UserData; onUpdate: () => void; onEdit: (e
         </div>
       )}
       {showPDFModal && pdfEstimate && (
-        <PDFExportModal estimate={pdfEstimate} companyName={user.username} onClose={() => { setShowPDFModal(false); setPdfEstimate(null); }} />
+        <PDFExportModal estimate={pdfEstimate} user={user} onClose={() => { setShowPDFModal(false); setPdfEstimate(null); }} />
       )}
     </div>
   );
 };
 
 // ============ Settings View ============
-const SettingsView: React.FC<{ user: UserData }> = memo(({ user }) => {
+const SettingsView: React.FC<{ user: UserData; onUpdate: () => void }> = memo(({ user, onUpdate }) => {
   const { t, i18n } = useTranslation();
   const config = getApiConfig();
   const remaining = mockApi.getRemainingTime(user);
   const url = `${window.location.origin}${window.location.pathname}#${user.uniqueId}`;
   const copy = useCallback(() => { navigator.clipboard.writeText(url); alert(t('settings.copied')); }, [url, t]);
+  
+  const [companyName, setCompanyName] = useState(user.companyName || '');
+  const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || '');
+  const [hasChanges, setHasChanges] = useState(false);
+  
+  const handleSaveCompanyInfo = () => {
+    mockApi.updateUser(user.uniqueId, { companyName, phoneNumber });
+    setHasChanges(false);
+    onUpdate();
+  };
 
   return (
     <div>
@@ -1570,11 +1861,48 @@ const SettingsView: React.FC<{ user: UserData }> = memo(({ user }) => {
           </div>
         </div>
       )}
+      
+      {/* Company Info */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">🏢 {t('settings.companyInfo')}</h2>
+        </div>
+        <div className="card-body">
+          <p className="text-xs text-gray mb-2">{t('settings.companyInfoDesc')}</p>
+          <div className="form-group">
+            <label className="form-label">{t('settings.companyName')}</label>
+            <input 
+              type="text" 
+              className="form-input" 
+              value={companyName} 
+              onChange={(e) => { setCompanyName(e.target.value); setHasChanges(true); }}
+              placeholder={user.username}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">{t('settings.phoneNumber')}</label>
+            <input 
+              type="tel" 
+              className="form-input" 
+              value={phoneNumber} 
+              onChange={(e) => { setPhoneNumber(e.target.value); setHasChanges(true); }}
+              placeholder={t('settings.phonePlaceholder')}
+            />
+          </div>
+          {hasChanges && (
+            <button className="btn btn-primary btn-block" onClick={handleSaveCompanyInfo}>
+              💾 {t('common.save')}
+            </button>
+          )}
+        </div>
+      </div>
+      
+      {/* Account Settings */}
       <div className="card">
         <div className="card-header"><h2 className="card-title">⚙️ {t('settings.title')}</h2></div>
         <div className="card-body">
           <div className="form-group">
-            <label className="form-label">{t('settings.companyName')}</label>
+            <label className="form-label">{t('settings.displayName')}</label>
             <input type="text" className="form-input" value={user.username} disabled />
           </div>
           <div className="form-group">
@@ -1618,7 +1946,7 @@ const SettingsView: React.FC<{ user: UserData }> = memo(({ user }) => {
       </div>
       <div className="card">
         <div className="card-body text-center text-xs text-gray">
-          {t('appName')} v2.2<br/>{t('settings.dataLocal')}
+          {t('appName')} v2.3<br/>{t('settings.dataLocal')}
           {config.retentionHours > 0 && <><br/>{t('settings.retention')}: {config.retentionHours}h</>}
         </div>
       </div>
@@ -1870,35 +2198,81 @@ const App: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="construction-stripe" />
-      <header className="header">
-        <div className="header-content">
-          <div className="logo">
-            <div className="logo-icon">📋</div>
-            <div className="logo-text">{t('appName').replace('Pro', '')}<span>Pro</span></div>
-          </div>
-          <div className="flex items-center gap-1">
+    <div className="app-layout">
+      {/* Desktop Sidebar */}
+      <aside className="app-sidebar mobile-hidden">
+        <div className="logo">
+          <div className="logo-icon">📋</div>
+          <div className="logo-text">{t('appName').replace('Pro', '')}<span>Pro</span></div>
+        </div>
+        <nav className="sidebar-nav">
+          <button 
+            className={`sidebar-nav-item ${tab === 'estimates' ? 'active' : ''}`} 
+            onClick={() => setTab('estimates')}
+          >
+            📊 {t('nav.estimates')}
+          </button>
+          <button 
+            className={`sidebar-nav-item ${tab === 'templates' ? 'active' : ''}`} 
+            onClick={() => setTab('templates')}
+          >
+            📋 {t('nav.templates')}
+          </button>
+          <button 
+            className={`sidebar-nav-item ${tab === 'settings' ? 'active' : ''}`} 
+            onClick={() => setTab('settings')}
+          >
+            ⚙️ {t('nav.settings')}
+          </button>
+        </nav>
+        <div className="sidebar-user">
+          <div className="flex items-center gap-1 mb-1">
             <SyncStatusIndicator />
             <RetentionTimer user={user} />
+          </div>
+          <div className="flex items-center gap-1">
             <LanguageSelector />
-            <div className="user-info">👤 {user.username}</div>
+            <div className="user-info" style={{ flex: 1 }}>👤 {user.username}</div>
           </div>
         </div>
-      </header>
-      <nav className="nav">
-        <div className="nav-tabs">
-          <button className={`nav-tab ${tab === 'estimates' ? 'active' : ''}`} onClick={() => setTab('estimates')}>📊 {t('nav.estimates')}</button>
-          <button className={`nav-tab ${tab === 'templates' ? 'active' : ''}`} onClick={() => setTab('templates')}>📋 {t('nav.templates')}</button>
-          <button className={`nav-tab ${tab === 'settings' ? 'active' : ''}`} onClick={() => setTab('settings')}>⚙️ {t('nav.settings')}</button>
-        </div>
-      </nav>
-      <main className="main" key={refreshKey}>
-        {tab === 'estimates' && <EstimatesView user={user} onUpdate={handleUpdate} onEdit={handleEditEstimate} />}
-        {tab === 'templates' && <TemplatesView user={user} onUpdate={handleUpdate} />}
-        {tab === 'settings' && <SettingsView user={user} />}
-      </main>
-    </>
+      </aside>
+      
+      {/* Main Content */}
+      <div className="app-content">
+        <div className="construction-stripe" />
+        
+        {/* Mobile Header */}
+        <header className="header desktop-hidden">
+          <div className="header-content">
+            <div className="logo">
+              <div className="logo-icon">📋</div>
+              <div className="logo-text">{t('appName').replace('Pro', '')}<span>Pro</span></div>
+            </div>
+            <div className="flex items-center gap-1">
+              <SyncStatusIndicator />
+              <RetentionTimer user={user} />
+              <LanguageSelector />
+              <div className="user-info">👤 {user.username}</div>
+            </div>
+          </div>
+        </header>
+        
+        {/* Mobile Navigation */}
+        <nav className="nav desktop-hidden">
+          <div className="nav-tabs">
+            <button className={`nav-tab ${tab === 'estimates' ? 'active' : ''}`} onClick={() => setTab('estimates')}>📊 {t('nav.estimates')}</button>
+            <button className={`nav-tab ${tab === 'templates' ? 'active' : ''}`} onClick={() => setTab('templates')}>📋 {t('nav.templates')}</button>
+            <button className={`nav-tab ${tab === 'settings' ? 'active' : ''}`} onClick={() => setTab('settings')}>⚙️ {t('nav.settings')}</button>
+          </div>
+        </nav>
+        
+        <main className="main" key={refreshKey}>
+          {tab === 'estimates' && <EstimatesView user={user} onUpdate={handleUpdate} onEdit={handleEditEstimate} />}
+          {tab === 'templates' && <TemplatesView user={user} onUpdate={handleUpdate} />}
+          {tab === 'settings' && <SettingsView user={user} onUpdate={handleUpdate} />}
+        </main>
+      </div>
+    </div>
   );
 };
 

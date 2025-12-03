@@ -3,7 +3,7 @@ import { Estimate, UNIT_LABELS, ROOM_LABELS, EstimateItem } from './types';
 
 export type PDFDetailLevel = 'simple' | 'standard' | 'detailed';
 
-// Polskie znaki - mapowanie na ASCII (dla podstawowego jsPDF)
+// Polish characters - mapping to ASCII (for basic jsPDF)
 const polishToAscii: Record<string, string> = {
   'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n',
   'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z',
@@ -21,7 +21,12 @@ interface PDFOptions {
   showMaterials: boolean;
 }
 
-// Grupuje pozycje według workId dla kompaktowego wyświetlania
+interface CompanyInfo {
+  companyName?: string;
+  phoneNumber?: string;
+}
+
+// Groups items by workId for compact display
 const groupByWork = (items: EstimateItem[]): Map<string, EstimateItem[]> => {
   const groups = new Map<string, EstimateItem[]>();
   const ungrouped: EstimateItem[] = [];
@@ -46,7 +51,8 @@ const groupByWork = (items: EstimateItem[]): Map<string, EstimateItem[]> => {
 export const generatePDF = (
   estimate: Estimate, 
   companyName: string,
-  options: PDFOptions = { detailLevel: 'standard', showMaterials: true }
+  options: PDFOptions = { detailLevel: 'standard', showMaterials: true },
+  companyInfo?: CompanyInfo
 ): void => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -74,21 +80,23 @@ export const generatePDF = (
     }
   };
 
-  // ============ HEADER - Kompaktowy ============
+  // ============ HEADER - Compact ============
   doc.setFillColor(...colors.primary);
   doc.rect(0, 0, pageWidth, 2, 'F');
 
   yPos = 18;
-  // Logo i tytuł w jednej linii
+  // Logo and title in one line
   doc.setFontSize(16);
   doc.setTextColor(...colors.dark);
   doc.text('KOSZTORYS', margin, yPos);
   
+  // Company name from settings or username
+  const displayCompanyName = companyInfo?.companyName || companyName;
   doc.setFontSize(9);
   doc.setTextColor(...colors.gray);
-  doc.text(sanitizePolish(companyName), pageWidth - margin, yPos, { align: 'right' });
+  doc.text(sanitizePolish(displayCompanyName), pageWidth - margin, yPos, { align: 'right' });
 
-  // Linia podziału
+  // Separator line
   yPos += 4;
   doc.setDrawColor(...colors.primaryLight);
   doc.setLineWidth(0.3);
@@ -349,7 +357,7 @@ export const generatePDF = (
       yPos += 6;
     }
     
-    // Kwota końcowa
+    // Final amount
     yPos += 5;
     doc.setFillColor(...colors.primary);
     doc.roundedRect(margin, yPos - 4, contentWidth, 14, 2, 2, 'F');
@@ -359,10 +367,40 @@ export const generatePDF = (
     doc.text('DO ZAPLATY:', margin + 8, yPos + 4);
     doc.setFontSize(13);
     doc.text(sanitizePolish(`${grandTotal.toFixed(2)} zl`), pageWidth - margin - 8, yPos + 4, { align: 'right' });
+    
+    // Notes section
+    if (estimate.notes && estimate.notes.trim()) {
+      yPos += 20;
+      checkNewPage(30);
+      
+      doc.setFontSize(8);
+      doc.setTextColor(...colors.gray);
+      doc.text('UWAGI:', margin, yPos);
+      yPos += 4;
+      
+      doc.setFontSize(8);
+      doc.setTextColor(...colors.dark);
+      const notesLines = doc.splitTextToSize(sanitizePolish(estimate.notes), contentWidth - 10);
+      doc.text(notesLines, margin, yPos);
+      yPos += notesLines.length * 4;
+    }
   }
 
-  // ============ STOPKA ============
-  const footerY = pageHeight - 8;
+  // ============ FOOTER ============
+  const footerY = pageHeight - 12;
+  
+  // Company contact info
+  if (companyInfo?.phoneNumber) {
+    doc.setFontSize(7);
+    doc.setTextColor(...colors.gray);
+    doc.text(
+      sanitizePolish(`${displayCompanyName} | Tel: ${companyInfo.phoneNumber}`),
+      pageWidth / 2, 
+      footerY - 4, 
+      { align: 'center' }
+    );
+  }
+  
   doc.setFontSize(6);
   doc.setTextColor(...colors.grayLight);
   doc.text(

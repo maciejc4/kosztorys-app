@@ -39,7 +39,13 @@ const resources = {
         confirmDelete: 'Czy na pewno chcesz usunąć?',
         createNew: '+ Utwórz nowy',
         quickAdd: 'Szybkie dodawanie',
-        currency: 'zł'
+        currency: 'zł',
+        next: 'Dalej',
+        back: 'Wstecz',
+        step: 'Krok',
+        of: 'z',
+        notes: 'Notatki',
+        notesPlaceholder: 'Dodatkowe uwagi, warunki płatności, terminy...'
       },
       
       // Login
@@ -132,7 +138,25 @@ const resources = {
         itemsToAdd: 'Pozycje do dodania:',
         addWorkTitle: 'Dodaj pracę',
         createWorkInline: 'Utwórz nową pracę',
-        noEstimates: 'Brak kosztorysów'
+        noEstimates: 'Brak kosztorysów',
+        wizardStep1Title: 'Klient',
+        wizardStep1Desc: 'Podstawowe informacje o kliencie i projekcie',
+        wizardStep2Title: 'Pomieszczenia',
+        wizardStep2Desc: 'Dodaj pomieszczenia do remontu',
+        wizardStep3Title: 'Prace',
+        wizardStep3Desc: 'Wybierz prace dla każdego pomieszczenia',
+        wizardStep4Title: 'Podsumowanie',
+        wizardStep4Desc: 'Przejrzyj i zapisz kosztorys',
+        selectRoomType: 'Wybierz typ pomieszczenia',
+        selectRoomTypeHint: 'Typ pomieszczenia określa dostępne prace',
+        addFirstRoom: 'Dodaj pierwsze pomieszczenie',
+        addAnotherRoom: 'Dodaj kolejne pomieszczenie',
+        noWorksInRoom: 'Brak prac w tym pomieszczeniu',
+        addWorksHint: 'Kliknij "Dodaj pracę" aby dodać prace remontowe',
+        useTemplate: 'Użyj szablonu',
+        applyTemplateHint: 'Gotowy zestaw prac dla tego typu pomieszczenia',
+        discountsOptional: 'Rabaty (opcjonalne)',
+        notesOptional: 'Notatki (opcjonalne)'
       },
       
       // PDF
@@ -165,7 +189,12 @@ const resources = {
         language: 'Język',
         version: 'Wersja',
         dataLocal: 'Dane przechowywane lokalnie',
-        retention: 'Retencja'
+        retention: 'Retencja',
+        phoneNumber: 'Numer telefonu',
+        phonePlaceholder: '+48 123 456 789',
+        companyInfo: 'Dane firmy',
+        companyInfoDesc: 'Te dane pojawią się w stopce kosztorysów PDF',
+        displayName: 'Nazwa wyświetlana'
       },
       
       // Units
@@ -235,7 +264,13 @@ const resources = {
         confirmDelete: 'Are you sure you want to delete?',
         createNew: '+ Create new',
         quickAdd: 'Quick add',
-        currency: '$'
+        currency: '$',
+        next: 'Next',
+        back: 'Back',
+        step: 'Step',
+        of: 'of',
+        notes: 'Notes',
+        notesPlaceholder: 'Additional remarks, payment terms, deadlines...'
       },
       
       login: {
@@ -325,7 +360,25 @@ const resources = {
         itemsToAdd: 'Items to add:',
         addWorkTitle: 'Add work',
         createWorkInline: 'Create new work',
-        noEstimates: 'No estimates'
+        noEstimates: 'No estimates',
+        wizardStep1Title: 'Client',
+        wizardStep1Desc: 'Basic client and project information',
+        wizardStep2Title: 'Rooms',
+        wizardStep2Desc: 'Add rooms to renovate',
+        wizardStep3Title: 'Works',
+        wizardStep3Desc: 'Select works for each room',
+        wizardStep4Title: 'Summary',
+        wizardStep4Desc: 'Review and save estimate',
+        selectRoomType: 'Select room type',
+        selectRoomTypeHint: 'Room type determines available works',
+        addFirstRoom: 'Add first room',
+        addAnotherRoom: 'Add another room',
+        noWorksInRoom: 'No works in this room',
+        addWorksHint: 'Click "Add work" to add renovation works',
+        useTemplate: 'Use template',
+        applyTemplateHint: 'Ready-made set of works for this room type',
+        discountsOptional: 'Discounts (optional)',
+        notesOptional: 'Notes (optional)'
       },
       
       pdf: {
@@ -356,7 +409,12 @@ const resources = {
         language: 'Language',
         version: 'Version',
         dataLocal: 'Data stored locally',
-        retention: 'Retention'
+        retention: 'Retention',
+        phoneNumber: 'Phone number',
+        phonePlaceholder: '+1 123 456 7890',
+        companyInfo: 'Company info',
+        companyInfoDesc: 'This information will appear in PDF estimate footers',
+        displayName: 'Display name'
       },
       
       units: {

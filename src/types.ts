@@ -1,4 +1,4 @@
-// Typy danych dla aplikacji kosztorysowej
+// Data types for the cost estimation application
 
 export type UnitType = 'mb' | 'm2' | 'szt' | 'godz' | 'kpl' | 'l' | 'kg';
 
@@ -14,7 +14,18 @@ export const ROOM_LABELS: Record<RoomType, string> = {
   inne: 'Inne'
 };
 
-// Szablon pojedynczej pozycji (usługa/materiał)
+// Default room names matching room types
+export const DEFAULT_ROOM_NAMES: Record<RoomType, string> = {
+  lazienka: 'Łazienka',
+  kuchnia: 'Kuchnia',
+  salon: 'Salon',
+  sypialnia: 'Sypialnia',
+  korytarz: 'Korytarz',
+  balkon: 'Balkon',
+  inne: 'Pomieszczenie'
+};
+
+// Single item template (service/material)
 export interface ItemTemplate {
   id: string;
   name: string;
@@ -23,24 +34,24 @@ export interface ItemTemplate {
   category: 'labor' | 'material';
 }
 
-// Materiał w szablonie pracy (z przelicznikiem)
+// Material in work template (with quantity ratio)
 export interface WorkMaterial {
   itemTemplateId: string;
-  quantityPerUnit: number; // ile materiału na jednostkę pracy (np. 0.2l farby na 1m2)
+  quantityPerUnit: number; // material amount per work unit (e.g., 0.2l paint per 1m2)
 }
 
-// Szablon pracy (np. "Malowanie ścian" z listą potrzebnych materiałów)
+// Work template (e.g., "Wall painting" with list of required materials)
 export interface WorkTemplate {
   id: string;
   name: string;
   unit: UnitType;
   laborPrice: number;
-  laborItemId?: string; // opcjonalne powiązanie z pozycją robocizny z szablonów
+  laborItemId?: string; // optional link to labor item from templates
   materials: WorkMaterial[];
-  roomTypes: RoomType[]; // w jakich pomieszczeniach dostępna
+  roomTypes: RoomType[]; // rooms where this work is available
 }
 
-// Szablon remontu pomieszczenia
+// Room renovation template
 export interface RoomRenovationTemplate {
   id: string;
   name: string;
@@ -49,7 +60,7 @@ export interface RoomRenovationTemplate {
   works: { workTemplateId: string; defaultQuantity: number }[];
 }
 
-// Pozycja w kosztorysie
+// Item in estimate
 export interface EstimateItem {
   id: string;
   templateId: string;
@@ -59,11 +70,11 @@ export interface EstimateItem {
   pricePerUnit: number;
   category: 'labor' | 'material';
   roomName?: string;
-  workId?: string; // ID grupowania pracy (pozwala grupować robociznę z materiałami)
-  workName?: string; // Nazwa pracy dla grupowania
+  workId?: string; // work group ID (allows grouping labor with materials)
+  workName?: string; // work name for grouping
 }
 
-// Pomieszczenie w kosztorysie
+// Room in estimate
 export interface EstimateRoom {
   id: string;
   name: string;
@@ -76,6 +87,7 @@ export interface Estimate {
   clientName: string;
   clientAddress: string;
   projectDescription: string;
+  notes: string; // additional notes for the estimate
   rooms: EstimateRoom[];
   includeMaterials: boolean;
   laborDiscountPercent: number;
@@ -87,6 +99,8 @@ export interface Estimate {
 export interface UserData {
   username: string;
   uniqueId: string;
+  companyName: string; // company name for PDF footer
+  phoneNumber: string; // phone number for PDF footer
   itemTemplates: ItemTemplate[];
   workTemplates: WorkTemplate[];
   roomRenovationTemplates: RoomRenovationTemplate[];
@@ -104,9 +118,9 @@ export const UNIT_LABELS: Record<UnitType, string> = {
   kg: 'kg'
 };
 
-// Domyślne szablony pozycji
+// Default item templates
 export const DEFAULT_ITEM_TEMPLATES: ItemTemplate[] = [
-  // Robocizna
+  // Labor
   { id: 'L1', name: 'Malowanie ścian', unit: 'm2', pricePerUnit: 25, category: 'labor' },
   { id: 'L2', name: 'Malowanie sufitu', unit: 'm2', pricePerUnit: 30, category: 'labor' },
   { id: 'L3', name: 'Układanie płytek podłogowych', unit: 'm2', pricePerUnit: 85, category: 'labor' },
@@ -133,7 +147,7 @@ export const DEFAULT_ITEM_TEMPLATES: ItemTemplate[] = [
   { id: 'L24', name: 'Montaż zlewozmywaka', unit: 'szt', pricePerUnit: 200, category: 'labor' },
   { id: 'L25', name: 'Montaż okapu', unit: 'szt', pricePerUnit: 250, category: 'labor' },
   
-  // Materiały
+  // Materials
   { id: 'M1', name: 'Farba emulsyjna biała', unit: 'l', pricePerUnit: 35, category: 'material' },
   { id: 'M2', name: 'Farba emulsyjna kolorowa', unit: 'l', pricePerUnit: 55, category: 'material' },
   { id: 'M3', name: 'Grunt pod farbę', unit: 'l', pricePerUnit: 25, category: 'material' },
@@ -176,7 +190,7 @@ export const DEFAULT_ITEM_TEMPLATES: ItemTemplate[] = [
   { id: 'M40', name: 'Wentylator łazienkowy', unit: 'szt', pricePerUnit: 120, category: 'material' },
 ];
 
-// Domyślne szablony prac (z materiałami)
+// Default work templates (with materials)
 export const DEFAULT_WORK_TEMPLATES: WorkTemplate[] = [
   {
     id: 'W1',
@@ -311,7 +325,7 @@ export const DEFAULT_WORK_TEMPLATES: WorkTemplate[] = [
   },
 ];
 
-// Domyślne szablony remontów pomieszczeń
+// Default room renovation templates
 export const DEFAULT_ROOM_RENOVATION_TEMPLATES: RoomRenovationTemplate[] = [
   {
     id: 'R1',
