@@ -1188,3 +1188,81 @@ body {
   color: var(--gray-500);
   margin: 0;
 }
+
+/* ============ SYNC STATUS ============ */
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.sync-status:hover {
+  background: var(--gray-200);
+}
+
+.sync-status.offline {
+  background: var(--gray-200);
+  color: var(--gray-500);
+  border-color: var(--gray-300);
+}
+
+.sync-status.syncing {
+  background: var(--info-light);
+  color: var(--info);
+  border-color: var(--info);
+}
+
+.sync-status.syncing .sync-status-icon {
+  animation: spin 1s linear infinite;
+}
+
+.sync-status.pending {
+  background: var(--warning-light);
+  color: var(--warning);
+  border-color: var(--warning);
+}
+
+.sync-status.error {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.sync-status.synced {
+  background: var(--success-light);
+  color: var(--success);
+  border-color: var(--success);
+}
+
+.sync-status-icon {
+  font-size: 0.875rem;
+}
+
+.sync-status-text {
+  white-space: nowrap;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Hide sync text on mobile */
+@media (max-width: 480px) {
+  .sync-status-text {
+    display: none;
+  }
+  
+  .sync-status {
+    padding: 0.5rem;
+  }
+}
