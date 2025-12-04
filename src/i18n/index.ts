@@ -166,13 +166,14 @@ const resources = {
       pdf: {
         export: 'Eksport PDF',
         detailLevel: 'Poziom szczegółowości',
-        simple: 'Uproszczony',
-        simpleDesc: 'Tylko podsumowanie kwot',
-        standard: 'Standardowy',
-        standardDesc: 'Lista pozycji bez cen jednostkowych',
-        detailed: 'Szczegółowy',
-        detailedDesc: 'Pełna specyfikacja z cenami',
-        download: 'Pobierz PDF'
+        simple: 'Podsumowanie',
+        simpleDesc: 'Tylko łączne kwoty robocizny i materiałów - idealne dla klienta',
+        standard: 'Dla klienta',
+        standardDesc: 'Lista prac z kwotami, bez szczegółowych cen jednostkowych',
+        detailed: 'Pełna specyfikacja',
+        detailedDesc: 'Wszystkie pozycje z cenami jednostkowymi - do wewnętrznego użytku',
+        download: 'Pobierz PDF',
+        print: 'Drukuj kosztorys'
       },
       
       // Settings
@@ -197,7 +198,16 @@ const resources = {
         phonePlaceholder: '+48 123 456 789',
         companyInfo: 'Dane firmy',
         companyInfoDesc: 'Te dane pojawią się w stopce kosztorysów PDF',
-        displayName: 'Nazwa wyświetlana'
+        displayName: 'Nazwa wyświetlana',
+        companyNameHint: 'Nazwa firmy widoczna w nagłówku i stopce kosztorysu PDF',
+        phoneNumberHint: 'Numer kontaktowy wyświetlany w stopce kosztorysu - pozwala klientowi łatwo się z Tobą skontaktować'
+      },
+      
+      // Validation
+      validation: {
+        requiredField: 'To pole jest wymagane',
+        requiredFieldsInfo: 'Pola oznaczone * są wymagane',
+        fillRequiredFields: 'Wypełnij wymagane pola, aby kontynuować'
       },
       
       // Units
@@ -390,13 +400,14 @@ const resources = {
       pdf: {
         export: 'PDF Export',
         detailLevel: 'Detail level',
-        simple: 'Simple',
-        simpleDesc: 'Summary only',
-        standard: 'Standard',
-        standardDesc: 'Item list without unit prices',
-        detailed: 'Detailed',
-        detailedDesc: 'Full specification with prices',
-        download: 'Download PDF'
+        simple: 'Summary',
+        simpleDesc: 'Only total amounts for labor and materials - ideal for client',
+        standard: 'For client',
+        standardDesc: 'List of works with amounts, without detailed unit prices',
+        detailed: 'Full specification',
+        detailedDesc: 'All items with unit prices - for internal use',
+        download: 'Download PDF',
+        print: 'Print estimate'
       },
       
       settings: {
@@ -420,7 +431,15 @@ const resources = {
         phonePlaceholder: '+1 123 456 7890',
         companyInfo: 'Company info',
         companyInfoDesc: 'This information will appear in PDF estimate footers',
-        displayName: 'Display name'
+        displayName: 'Display name',
+        companyNameHint: 'Company name visible in PDF estimate header and footer',
+        phoneNumberHint: 'Contact number displayed in estimate footer - allows clients to easily contact you'
+      },
+      
+      validation: {
+        requiredField: 'This field is required',
+        requiredFieldsInfo: 'Fields marked with * are required',
+        fillRequiredFields: 'Fill in required fields to continue'
       },
       
       units: {

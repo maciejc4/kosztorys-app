@@ -172,6 +172,51 @@ const SearchInput: React.FC<{ value: string; onChange: (v: string) => void; plac
   );
 });
 
+// ============ Google AdSense Banner ============
+// Configure your ad unit ID in the adSlot prop
+interface AdBannerProps {
+  adSlot?: string; // Google AdSense ad slot ID
+  adClient?: string; // Google AdSense client ID (ca-pub-XXXXXXXXXXXXXXXX)
+}
+
+const AdBanner: React.FC<AdBannerProps> = memo(({ adSlot, adClient }) => {
+  useEffect(() => {
+    // Only load ads if adSlot and adClient are provided
+    if (adSlot && adClient && typeof window !== 'undefined') {
+      try {
+        // @ts-ignore - adsbygoogle is injected by Google AdSense script
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (e) {
+        console.log('AdSense error:', e);
+      }
+    }
+  }, [adSlot, adClient]);
+
+  // If no ad configuration, show a subtle placeholder
+  if (!adSlot || !adClient) {
+    return (
+      <div className="ad-banner-placeholder">
+        <div className="ad-banner-content">
+          {/* Placeholder for future ad - can be removed or replaced with actual ad */}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="ad-banner">
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block' }}
+        data-ad-client={adClient}
+        data-ad-slot={adSlot}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+    </div>
+  );
+});
+
 // ============ Retention Timer Component ============
 const RetentionTimer: React.FC<{ user: UserData }> = memo(({ user }) => {
   const { t } = useTranslation();
@@ -1334,34 +1379,53 @@ const EstimateEditor: React.FC<{
     </div>
   );
 
-  // Navigation buttons
-  const WizardNav = () => (
-    <div className="wizard-nav">
-      {step > 1 && !isEditing && (
-        <button className="btn btn-secondary" onClick={() => setStep(step - 1)}>
-          ← {t('common.back')}
-        </button>
-      )}
-      <div style={{ flex: 1 }} />
-      {step < 4 ? (
-        <button 
-          className="btn btn-primary" 
-          onClick={() => setStep(step + 1)}
-          disabled={!canGoNext()}
-        >
-          {t('common.next')} →
-        </button>
-      ) : (
-        <button className="btn btn-success" onClick={handleSave}>
-          💾 {t('common.save')}
-        </button>
-      )}
-    </div>
-  );
+  // Navigation buttons with validation info
+  const WizardNav = () => {
+    const canProceed = canGoNext();
+    return (
+      <div className="wizard-nav">
+        {step > 1 && !isEditing && (
+          <button className="btn btn-secondary" onClick={() => setStep(step - 1)}>
+            ← {t('common.back')}
+          </button>
+        )}
+        <div style={{ flex: 1 }}>
+          {!canProceed && step < 4 && (
+            <span className="validation-hint">
+              {step === 1 && t('validation.fillRequiredFields')}
+              {step === 2 && t('estimates.addFirstRoom')}
+              {step === 3 && t('estimates.addWorksHint')}
+            </span>
+          )}
+        </div>
+        {step < 4 ? (
+          <button 
+            className={`btn btn-primary ${!canProceed ? 'btn-disabled' : ''}`}
+            onClick={() => canProceed && setStep(step + 1)}
+            disabled={!canProceed}
+            title={!canProceed ? t('validation.fillRequiredFields') : ''}
+          >
+            {t('common.next')} →
+          </button>
+        ) : (
+          <button className="btn btn-success" onClick={handleSave}>
+            💾 {t('common.save')}
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="wizard-container">
       {!isEditing && <StepIndicator />}
+      
+      {/* Required fields info */}
+      {!isEditing && step === 1 && (
+        <div className="required-fields-info">
+          <span>*</span> {t('validation.requiredFieldsInfo')}
+        </div>
+      )}
       
       {/* Step 1: Client Data */}
       {step === 1 && (
@@ -1374,16 +1438,21 @@ const EstimateEditor: React.FC<{
           <div className="card">
             <div className="card-body">
               <div className="form-group">
-                <label className="form-label">{t('estimates.clientName')} *</label>
+                <label className="form-label">{t('estimates.clientName')} <span className="required-star">*</span></label>
                 <input 
                   type="text" 
-                  className="form-input form-input-lg" 
+                  className={`form-input form-input-lg ${!clientName.trim() ? 'form-input-required' : ''}`}
                   placeholder={t('estimates.clientNamePlaceholder')} 
                   value={clientName} 
                   onChange={(e) => setClientName(e.target.value)}
                   autoFocus
                 />
-                <p className="form-hint">Imię i nazwisko lub nazwa firmy klienta</p>
+                {!clientName.trim() && (
+                  <p className="form-hint form-hint-error">{t('validation.requiredField')}</p>
+                )}
+                {clientName.trim() && (
+                  <p className="form-hint">Imię i nazwisko lub nazwa firmy klienta</p>
+                )}
               </div>
               
               <div className="form-group">
@@ -1833,6 +1902,10 @@ const EstimatesView: React.FC<{ user: UserData; onUpdate: () => void; onEdit: (e
           <button className="btn btn-primary btn-sm" onClick={() => onEdit(null)}>+ {t('estimates.new')}</button>
         </div>
       </div>
+      
+      {/* Google AdSense placeholder */}
+      <AdBanner />
+      
       {user.estimates.length === 0 ? (
         <div className="card">
           <div className="empty-state">
@@ -1844,19 +1917,29 @@ const EstimatesView: React.FC<{ user: UserData; onUpdate: () => void; onEdit: (e
       ) : (
         <div className="card">
           {user.estimates.map(e => (
-            <div key={e.id} className="list-item">
-              <div className="list-item-content">
-                <div className="list-item-title">{e.clientName}</div>
-                <div className="list-item-subtitle">
-                  {e.projectDescription || t('estimates.noDescription')} • {e.rooms.length} {t('estimates.rooms').toLowerCase()} • 
-                  <strong className="text-primary"> {calcTotal(e).toFixed(2)} {t('common.currency')}</strong>
+            <div key={e.id} className="estimate-card-item">
+              <div className="list-item" style={{ borderBottom: 'none', paddingBottom: '0.5rem' }}>
+                <div className="list-item-content">
+                  <div className="list-item-title">{e.clientName}</div>
+                  <div className="list-item-subtitle">
+                    {e.projectDescription || t('estimates.noDescription')} • {e.rooms.length} {t('estimates.rooms').toLowerCase()} • 
+                    <strong className="text-primary"> {calcTotal(e).toFixed(2)} {t('common.currency')}</strong>
+                  </div>
+                  <div className="list-item-subtitle text-xs text-gray">{new Date(e.createdAt).toLocaleDateString()}</div>
                 </div>
-                <div className="list-item-subtitle text-xs text-gray">{new Date(e.createdAt).toLocaleDateString()}</div>
+                <div className="list-item-actions">
+                  <button className="btn btn-ghost btn-sm" onClick={() => onEdit(e)}>✏️</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(e.id)}>🗑️</button>
+                </div>
               </div>
-              <div className="list-item-actions">
-                <button className="btn btn-secondary btn-sm" onClick={() => { setPdfEstimate(e); setShowPDFModal(true); }}>📄</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => onEdit(e)}>✏️</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(e.id)}>🗑️</button>
+              {/* Prominent print button */}
+              <div style={{ padding: '0.5rem 1rem 0.75rem', borderTop: '1px solid var(--gray-100)' }}>
+                <button 
+                  className="btn btn-primary btn-block print-estimate-btn" 
+                  onClick={() => { setPdfEstimate(e); setShowPDFModal(true); }}
+                >
+                  🖨️ {t('pdf.print')}
+                </button>
               </div>
             </div>
           ))}
@@ -1909,7 +1992,10 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void }> = memo(({
           <h2 className="card-title">🏢 {t('settings.companyInfo')}</h2>
         </div>
         <div className="card-body">
-          <p className="text-xs text-gray mb-2">{t('settings.companyInfoDesc')}</p>
+          <div className="info-box mb-2">
+            <span className="info-box-icon">ℹ️</span>
+            <p>{t('settings.companyInfoDesc')}</p>
+          </div>
           <div className="form-group">
             <label className="form-label">{t('settings.companyName')}</label>
             <input 
@@ -1919,6 +2005,7 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void }> = memo(({
               onChange={(e) => { setCompanyName(e.target.value); setHasChanges(true); }}
               placeholder={user.username}
             />
+            <p className="form-hint">{t('settings.companyNameHint')}</p>
           </div>
           <div className="form-group">
             <label className="form-label">{t('settings.phoneNumber')}</label>
@@ -1929,6 +2016,7 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void }> = memo(({
               onChange={(e) => { setPhoneNumber(e.target.value); setHasChanges(true); }}
               placeholder={t('settings.phonePlaceholder')}
             />
+            <p className="form-hint">{t('settings.phoneNumberHint')}</p>
           </div>
           {hasChanges && (
             <button className="btn btn-primary btn-block" onClick={handleSaveCompanyInfo}>

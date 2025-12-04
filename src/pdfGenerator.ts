@@ -102,29 +102,62 @@ export const generatePDF = (
   doc.setLineWidth(0.3);
   doc.line(margin, yPos, pageWidth - margin, yPos);
 
-  // ============ DANE KLIENTA - Kompaktowe ============
+  // ============ DANE KONTAKTOWE - Tabelka ============
   yPos += 6;
-  doc.setFontSize(8);
-  doc.setTextColor(...colors.grayLight);
-  doc.text('KLIENT', margin, yPos);
-  doc.text('DATA', pageWidth - margin - 30, yPos);
   
-  yPos += 4;
-  doc.setFontSize(10);
+  // Draw info table
+  const tableWidth = contentWidth;
+  const leftColWidth = tableWidth * 0.55;
+  
+  // Table header background
+  doc.setFillColor(...colors.light);
+  doc.roundedRect(margin, yPos - 2, tableWidth, 32, 2, 2, 'F');
+  
+  // Left column - Client info
+  doc.setFontSize(7);
+  doc.setTextColor(...colors.grayLight);
+  doc.text('KLIENT', margin + 4, yPos + 3);
+  
+  doc.setFontSize(11);
   doc.setTextColor(...colors.dark);
-  doc.text(sanitizePolish(estimate.clientName), margin, yPos);
-  doc.setFontSize(9);
-  doc.text(new Date(estimate.createdAt).toLocaleDateString('pl-PL'), pageWidth - margin, yPos, { align: 'right' });
-
-  if (estimate.clientAddress || estimate.projectDescription) {
-    yPos += 4;
+  doc.text(sanitizePolish(estimate.clientName), margin + 4, yPos + 10);
+  
+  if (estimate.clientAddress) {
     doc.setFontSize(8);
     doc.setTextColor(...colors.gray);
-    const info: string[] = [];
-    if (estimate.clientAddress) info.push(sanitizePolish(estimate.clientAddress));
-    if (estimate.projectDescription) info.push(sanitizePolish(estimate.projectDescription));
-    doc.text(info.join(' | '), margin, yPos);
+    doc.text(sanitizePolish(estimate.clientAddress), margin + 4, yPos + 16);
   }
+  
+  if (estimate.projectDescription) {
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.gray);
+    const descY = estimate.clientAddress ? yPos + 22 : yPos + 16;
+    doc.text(sanitizePolish(estimate.projectDescription), margin + 4, descY);
+  }
+  
+  // Right column - Company info and date
+  const rightColX = margin + leftColWidth + 4;
+  
+  doc.setFontSize(7);
+  doc.setTextColor(...colors.grayLight);
+  doc.text('WYKONAWCA', rightColX, yPos + 3);
+  
+  doc.setFontSize(10);
+  doc.setTextColor(...colors.dark);
+  doc.text(sanitizePolish(displayCompanyName), rightColX, yPos + 10);
+  
+  if (companyInfo?.phoneNumber) {
+    doc.setFontSize(9);
+    doc.setTextColor(...colors.primary);
+    doc.text(sanitizePolish('Tel: ' + companyInfo.phoneNumber), rightColX, yPos + 16);
+  }
+  
+  doc.setFontSize(8);
+  doc.setTextColor(...colors.gray);
+  const dateY = companyInfo?.phoneNumber ? yPos + 22 : yPos + 16;
+  doc.text('Data: ' + new Date(estimate.createdAt).toLocaleDateString('pl-PL'), rightColX, dateY);
+  
+  yPos += 34;
 
   // ============ OBLICZENIA ============
   let totalLabor = 0;
@@ -389,24 +422,28 @@ export const generatePDF = (
   // ============ FOOTER ============
   const footerY = pageHeight - 12;
   
-  // Company contact info
-  if (companyInfo?.phoneNumber) {
-    doc.setFontSize(7);
-    doc.setTextColor(...colors.gray);
-    doc.text(
-      sanitizePolish(`${displayCompanyName} | Tel: ${companyInfo.phoneNumber}`),
-      pageWidth / 2, 
-      footerY - 4, 
-      { align: 'center' }
-    );
-  }
+  // Company contact info - more prominent
+  doc.setFillColor(...colors.primaryLight);
+  doc.roundedRect(margin, footerY - 10, contentWidth, 12, 2, 2, 'F');
+  
+  doc.setFontSize(8);
+  doc.setTextColor(...colors.primary);
+  const footerText = companyInfo?.phoneNumber 
+    ? `${displayCompanyName} | Tel: ${companyInfo.phoneNumber}`
+    : displayCompanyName;
+  doc.text(
+    sanitizePolish(footerText),
+    pageWidth / 2, 
+    footerY - 4, 
+    { align: 'center' }
+  );
   
   doc.setFontSize(6);
   doc.setTextColor(...colors.grayLight);
   doc.text(
     'Kosztorys wygenerowany w KosztorysPro | Ceny orientacyjne',
     pageWidth / 2, 
-    footerY, 
+    footerY + 2, 
     { align: 'center' }
   );
 
