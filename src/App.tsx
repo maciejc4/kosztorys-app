@@ -12,11 +12,7 @@ import { SyncStatusIndicator } from './SyncComponents';
 import { queueOperation, initSyncService } from './syncService';
 import './i18n';
 import { changeLanguage, SUPPORTED_LANGUAGES, getCurrentLanguage } from './i18n';
-
-// ============ APP CONFIGURATION ============
-// Set to true to require online access (blocks offline usage)
-// Set to false to allow full PWA/offline functionality
-const REQUIRE_ONLINE_ACCESS = true;
+import { APP_BEHAVIOR, DEFAULT_SYNC_CONFIG } from './config';
 
 // Helper to format remaining time
 const formatRemainingTime = (ms: number): string => {
@@ -2708,7 +2704,7 @@ const App: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    initSyncService({ backendUrl: 'http://localhost:8080/api' });
+    initSyncService({ backendUrl: DEFAULT_SYNC_CONFIG.backendUrl });
 
     // Listen for online/offline changes
     const handleOnline = () => setIsOnline(true);
@@ -2784,8 +2780,8 @@ const App: React.FC = () => {
     setEditingEstimate(null);
   };
 
-  // Block offline access if REQUIRE_ONLINE_ACCESS is enabled (skip for admin)
-  if (REQUIRE_ONLINE_ACCESS && !isOnline && !isAdmin) {
+  // Block offline access if requireOnlineAccess is enabled (skip for admin)
+  if (APP_BEHAVIOR.requireOnlineAccess && !isOnline && !isAdmin) {
     return <OfflineScreen onRetry={handleRetryConnection} />;
   }
 

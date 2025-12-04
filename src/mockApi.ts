@@ -1,7 +1,6 @@
 import { UserData, Estimate, ItemTemplate, WorkTemplate, DEFAULT_ITEM_TEMPLATES, DEFAULT_WORK_TEMPLATES, DEFAULT_ROOM_RENOVATION_TEMPLATES, EXAMPLE_ESTIMATE } from './types';
 import { v4 as uuidv4 } from 'uuid';
-
-const STORAGE_KEY = 'kosztorys_users';
+import { STORAGE_KEYS } from './config';
 
 // Mockowany backend - wszystko w localStorage
 export const mockApi = {
@@ -50,7 +49,7 @@ export const mockApi = {
     };
 
     users[uniqueId] = newUser;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     
     return newUser;
   },
@@ -95,7 +94,7 @@ export const mockApi = {
 
   // Pobieranie wszystkich użytkowników
   getAllUsers: (): Record<string, UserData> => {
-    const data = localStorage.getItem(STORAGE_KEY);
+    const data = localStorage.getItem(STORAGE_KEYS.USERS);
     return data ? JSON.parse(data) : {};
   },
 
@@ -105,7 +104,7 @@ export const mockApi = {
     if (!users[uniqueId]) return null;
 
     users[uniqueId] = { ...users[uniqueId], ...updates };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     
     return users[uniqueId];
   },

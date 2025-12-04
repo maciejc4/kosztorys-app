@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import { Estimate, UNIT_LABELS, ROOM_LABELS, EstimateItem } from './types';
+import { PDF_CONFIG } from './config';
 
 export type PDFDetailLevel = 'simple' | 'standard' | 'detailed';
 
@@ -450,6 +451,6 @@ export const generatePDF = (
   doc.setFillColor(...colors.primary);
   doc.rect(0, pageHeight - 2, pageWidth, 2, 'F');
 
-  const fileName = `kosztorys_${estimate.clientName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+  const fileName = `${PDF_CONFIG.fileNamePrefix}_${estimate.clientName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(sanitizePolish(fileName));
 };

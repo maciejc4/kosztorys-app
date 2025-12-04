@@ -1,5 +1,10 @@
 // Synchronization Service - obsługa offline/online synchronizacji
 import { UserData, Estimate, ItemTemplate, WorkTemplate, RoomRenovationTemplate } from './types';
+import { STORAGE_KEYS, DEFAULT_SYNC_CONFIG } from './config';
+import type { SyncConfig } from './config';
+
+// Re-export SyncConfig type
+export type { SyncConfig };
 
 // Transform data for backend - converts roomType/roomTypes to uppercase
 const transformForBackend = <T>(data: T): T => {
@@ -55,24 +60,7 @@ export interface SyncState {
   syncErrors: string[];
 }
 
-// Storage keys
-const PENDING_SYNC_KEY = 'kosztorys_pending_sync';
-const LAST_SYNC_KEY = 'kosztorys_last_sync';
-
-// Configuration
-export interface SyncConfig {
-  backendUrl: string;
-  syncIntervalMs: number;
-  maxRetries: number;
-}
-
-const defaultSyncConfig: SyncConfig = {
-  backendUrl: 'http://localhost:8080/api',
-  syncIntervalMs: 30000, // 30 sekund
-  maxRetries: 3
-};
-
-let syncConfig: SyncConfig = { ...defaultSyncConfig };
+let syncConfig: SyncConfig = { ...DEFAULT_SYNC_CONFIG };
 let syncState: SyncState = {
   isOnline: navigator.onLine,
   isSyncing: false,
@@ -93,7 +81,7 @@ export const initSyncService = (config?: Partial<SyncConfig>): void => {
   loadPendingOperations();
   
   // Załaduj ostatni czas synchronizacji
-  const lastSync = localStorage.getItem(LAST_SYNC_KEY);
+  const lastSync = localStorage.getItem(STORAGE_KEYS.LAST_SYNC);
   if (lastSync) {
     syncState.lastSyncTime = parseInt(lastSync, 10);
   }
@@ -169,12 +157,12 @@ export const queueOperation = (operation: SyncOperation): void => {
 
 // Zapisz oczekujące operacje do localStorage
 const savePendingOperations = (): void => {
-  localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify(syncState.pendingOperations));
+  localStorage.setItem(STORAGE_KEYS.PENDING_SYNC, JSON.stringify(syncState.pendingOperations));
 };
 
 // Załaduj oczekujące operacje z localStorage
 const loadPendingOperations = (): void => {
-  const stored = localStorage.getItem(PENDING_SYNC_KEY);
+  const stored = localStorage.getItem(STORAGE_KEYS.PENDING_SYNC);
   if (stored) {
     try {
       const operations = JSON.parse(stored) as PendingSync[];
@@ -243,7 +231,7 @@ export const triggerSync = async (): Promise<void> => {
   });
   
   savePendingOperations();
-  localStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
+  localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
 };
 
 // Wykonaj pojedynczą operację synchronizacji

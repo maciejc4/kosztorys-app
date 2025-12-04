@@ -1,21 +1,14 @@
 // API Abstraction Layer - przygotowane do przełączenia na REST backend
 import { UserData, Estimate, ItemTemplate, WorkTemplate, RoomRenovationTemplate, DEFAULT_ITEM_TEMPLATES, DEFAULT_WORK_TEMPLATES, DEFAULT_ROOM_RENOVATION_TEMPLATES } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import { queueOperation } from './syncService';
+import { DEFAULT_API_CONFIG, STORAGE_KEYS, CLEANUP_CONFIG } from './config';
+import type { ApiConfig } from './config';
 
-// Konfiguracja
-export interface ApiConfig {
-  useRestBackend: boolean;
-  restBaseUrl: string;
-  retentionHours: number; // 0 = brak retencji (dane permanentne)
-}
+// Re-export ApiConfig type
+export type { ApiConfig };
 
-const defaultConfig: ApiConfig = {
-  useRestBackend: false,
-  restBaseUrl: '/api',
-  retentionHours: 24, // domyślnie 24h retencja
-};
-
-let config: ApiConfig = { ...defaultConfig };
+let config: ApiConfig = { ...DEFAULT_API_CONFIG };
 
 export const setApiConfig = (newConfig: Partial<ApiConfig>) => {
   config = { ...config, ...newConfig };
@@ -23,29 +16,24 @@ export const setApiConfig = (newConfig: Partial<ApiConfig>) => {
 
 export const getApiConfig = (): ApiConfig => ({ ...config });
 
-// Storage key
-const STORAGE_KEY = 'kosztorys_users';
-
-// === Local Storage Implementation ===
-
 const getLocalUsers = (): Record<string, UserData> => {
-  const data = localStorage.getItem(STORAGE_KEY);
+  const data = localStorage.getItem(STORAGE_KEYS.USERS);
   return data ? JSON.parse(data) : {};
 };
 
 const saveLocalUsers = (users: Record<string, UserData>) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+  localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
 };
 
 // Sprawdzenie retencji - usuwa przeterminowane konta
 const cleanupExpiredAccounts = () => {
   if (config.retentionHours <= 0) return;
-  
+
   const users = getLocalUsers();
   const now = Date.now();
   const retentionMs = config.retentionHours * 60 * 60 * 1000;
   let hasChanges = false;
-  
+
   for (const id in users) {
     const user = users[id];
     const createdAt = new Date(user.createdAt).getTime();
@@ -54,7 +42,7 @@ const cleanupExpiredAccounts = () => {
       hasChanges = true;
     }
   }
-  
+
   if (hasChanges) {
     saveLocalUsers(users);
   }
@@ -63,7 +51,7 @@ const cleanupExpiredAccounts = () => {
 // Sprawdź retencję przy starcie i co minutę
 if (typeof window !== 'undefined') {
   cleanupExpiredAccounts();
-  setInterval(cleanupExpiredAccounts, 60000);
+  setInterval(cleanupExpiredAccounts, CLEANUP_CONFIG.checkIntervalMs);
 }
 
 // === REST API Implementation (placeholder) ===
@@ -90,23 +78,24 @@ export interface Api {
   getUser: (uniqueId: string) => Promise<UserData | null>;
   getAllUsers: () => Promise<Record<string, UserData>>;
   deleteUser: (uniqueId: string) => Promise<boolean>;
+  updateUser: (uniqueId: string, updates: Partial<UserData>) => Promise<boolean>;
   getRemainingTime: (user: UserData) => number | null; // zwraca pozostały czas w ms lub null jeśli brak retencji
-  
+
   // Item templates
   addItemTemplate: (uniqueId: string, template: Omit<ItemTemplate, 'id'>) => Promise<ItemTemplate | null>;
   updateItemTemplate: (uniqueId: string, templateId: string, updates: Partial<ItemTemplate>) => Promise<boolean>;
   deleteItemTemplate: (uniqueId: string, templateId: string) => Promise<boolean>;
-  
+
   // Work templates
   addWorkTemplate: (uniqueId: string, template: Omit<WorkTemplate, 'id'>) => Promise<WorkTemplate | null>;
   updateWorkTemplate: (uniqueId: string, templateId: string, updates: Partial<WorkTemplate>) => Promise<boolean>;
   deleteWorkTemplate: (uniqueId: string, templateId: string) => Promise<boolean>;
-  
+
   // Renovation templates
   addRenovationTemplate: (uniqueId: string, template: Omit<RoomRenovationTemplate, 'id'>) => Promise<RoomRenovationTemplate | null>;
   updateRenovationTemplate: (uniqueId: string, templateId: string, updates: Partial<RoomRenovationTemplate>) => Promise<boolean>;
   deleteRenovationTemplate: (uniqueId: string, templateId: string) => Promise<boolean>;
-  
+
   // Estimates
   createEstimate: (uniqueId: string, estimate: Estimate) => Promise<Estimate | null>;
   updateEstimate: (uniqueId: string, estimateId: string, updates: Partial<Estimate>) => Promise<boolean>;
@@ -121,7 +110,7 @@ const localApi: Api = {
     cleanupExpiredAccounts();
     const users = getLocalUsers();
     const uniqueId = uuidv4().slice(0, 8);
-    
+
     const newUser: UserData = {
       username,
       uniqueId,
@@ -133,28 +122,50 @@ const localApi: Api = {
       estimates: [],
       createdAt: new Date().toISOString()
     };
-    
+
     users[uniqueId] = newUser;
     saveLocalUsers(users);
+
+    // Queue sync operation
+    queueOperation({
+      type: 'CREATE_USER',
+      payload: { username, useDefaultData }
+    });
+
     return newUser;
   },
-  
+
+  updateUser: async (uniqueId: string, updates: Partial<UserData>): Promise<boolean> => {
+    const users = getLocalUsers();
+    if (!users[uniqueId]) return false;
+
+    users[uniqueId] = { ...users[uniqueId], ...updates };
+    saveLocalUsers(users);
+
+    queueOperation({
+      type: 'UPDATE_USER',
+      payload: { uniqueId, updates }
+    });
+
+    return true;
+  },
+
   getUser: async (uniqueId: string): Promise<UserData | null> => {
     cleanupExpiredAccounts();
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return null;
-    
+
     // Migracja starych danych
     let needsUpdate = false;
-    
+
     if (!user.itemTemplates) {
       user.itemTemplates = [...DEFAULT_ITEM_TEMPLATES];
       user.workTemplates = [...DEFAULT_WORK_TEMPLATES];
       user.roomRenovationTemplates = [...DEFAULT_ROOM_RENOVATION_TEMPLATES];
       needsUpdate = true;
     }
-    
+
     if (user.estimates) {
       user.estimates = user.estimates.map((e: any) => {
         const updated = {
@@ -168,28 +179,29 @@ const localApi: Api = {
         return updated;
       });
     }
-    
+
     if (needsUpdate) {
       users[uniqueId] = user;
       saveLocalUsers(users);
     }
-    
+
     return user;
   },
-  
+
   getAllUsers: async (): Promise<Record<string, UserData>> => {
     cleanupExpiredAccounts();
     return getLocalUsers();
   },
-  
+
   deleteUser: async (uniqueId: string): Promise<boolean> => {
     const users = getLocalUsers();
     if (!users[uniqueId]) return false;
     delete users[uniqueId];
     saveLocalUsers(users);
+    // Note: DELETE_USER is not in SyncOperation yet, assuming it might be added or handled differently
     return true;
   },
-  
+
   getRemainingTime: (user: UserData): number | null => {
     if (config.retentionHours <= 0) return null;
     const createdAt = new Date(user.createdAt).getTime();
@@ -197,157 +209,173 @@ const localApi: Api = {
     const remaining = expiresAt - Date.now();
     return remaining > 0 ? remaining : 0;
   },
-  
+
   // Item templates
   addItemTemplate: async (uniqueId: string, template: Omit<ItemTemplate, 'id'>): Promise<ItemTemplate | null> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return null;
-    
+
     const newTemplate: ItemTemplate = { ...template, id: uuidv4() };
     user.itemTemplates.push(newTemplate);
     saveLocalUsers(users);
+
+    queueOperation({
+      type: 'ADD_ITEM_TEMPLATE',
+      payload: {
+        uniqueId,
+        template: template,
+        localId: newTemplate.id
+      }
+    });
+
     return newTemplate;
   },
-  
+
   updateItemTemplate: async (uniqueId: string, templateId: string, updates: Partial<ItemTemplate>): Promise<boolean> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return false;
-    
+
     const index = user.itemTemplates.findIndex(t => t.id === templateId);
     if (index === -1) return false;
-    
+
     user.itemTemplates[index] = { ...user.itemTemplates[index], ...updates };
     saveLocalUsers(users);
     return true;
   },
-  
+
   deleteItemTemplate: async (uniqueId: string, templateId: string): Promise<boolean> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return false;
-    
+
     user.itemTemplates = user.itemTemplates.filter(t => t.id !== templateId);
     saveLocalUsers(users);
     return true;
   },
-  
+
   // Work templates
   addWorkTemplate: async (uniqueId: string, template: Omit<WorkTemplate, 'id'>): Promise<WorkTemplate | null> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return null;
-    
+
     const newTemplate: WorkTemplate = { ...template, id: uuidv4() };
     user.workTemplates.push(newTemplate);
     saveLocalUsers(users);
     return newTemplate;
   },
-  
+
   updateWorkTemplate: async (uniqueId: string, templateId: string, updates: Partial<WorkTemplate>): Promise<boolean> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return false;
-    
+
     const index = user.workTemplates.findIndex(t => t.id === templateId);
     if (index === -1) return false;
-    
+
     user.workTemplates[index] = { ...user.workTemplates[index], ...updates };
     saveLocalUsers(users);
     return true;
   },
-  
+
   deleteWorkTemplate: async (uniqueId: string, templateId: string): Promise<boolean> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return false;
-    
+
     user.workTemplates = user.workTemplates.filter(t => t.id !== templateId);
     saveLocalUsers(users);
     return true;
   },
-  
+
   // Renovation templates
   addRenovationTemplate: async (uniqueId: string, template: Omit<RoomRenovationTemplate, 'id'>): Promise<RoomRenovationTemplate | null> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return null;
-    
+
     const newTemplate: RoomRenovationTemplate = { ...template, id: uuidv4() };
     user.roomRenovationTemplates.push(newTemplate);
     saveLocalUsers(users);
     return newTemplate;
   },
-  
+
   updateRenovationTemplate: async (uniqueId: string, templateId: string, updates: Partial<RoomRenovationTemplate>): Promise<boolean> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return false;
-    
+
     const index = user.roomRenovationTemplates.findIndex(t => t.id === templateId);
     if (index === -1) return false;
-    
+
     user.roomRenovationTemplates[index] = { ...user.roomRenovationTemplates[index], ...updates };
     saveLocalUsers(users);
     return true;
   },
-  
+
   deleteRenovationTemplate: async (uniqueId: string, templateId: string): Promise<boolean> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return false;
-    
+
     user.roomRenovationTemplates = user.roomRenovationTemplates.filter(t => t.id !== templateId);
     saveLocalUsers(users);
     return true;
   },
-  
+
   // Estimates
   createEstimate: async (uniqueId: string, estimate: Estimate): Promise<Estimate | null> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return null;
-    
+
     const newEstimate: Estimate = {
       ...estimate,
       id: estimate.id || uuidv4(),
       createdAt: estimate.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    
+
     user.estimates.push(newEstimate);
     saveLocalUsers(users);
     return newEstimate;
   },
-  
+
   updateEstimate: async (uniqueId: string, estimateId: string, updates: Partial<Estimate>): Promise<boolean> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return false;
-    
+
     const index = user.estimates.findIndex(e => e.id === estimateId);
     if (index === -1) return false;
-    
+
     user.estimates[index] = {
       ...user.estimates[index],
       ...updates,
       updatedAt: new Date().toISOString()
     };
     saveLocalUsers(users);
+
+    queueOperation({
+      type: 'UPDATE_ESTIMATE',
+      payload: { uniqueId, estimateId, updates }
+    });
+
     return true;
   },
-  
+
   deleteEstimate: async (uniqueId: string, estimateId: string): Promise<boolean> => {
     const users = getLocalUsers();
     const user = users[uniqueId];
     if (!user) return false;
-    
+
     user.estimates = user.estimates.filter(e => e.id !== estimateId);
     saveLocalUsers(users);
     return true;
   },
-  
+
   getEstimate: async (uniqueId: string, estimateId: string): Promise<Estimate | null> => {
     const user = await localApi.getUser(uniqueId);
     if (!user) return null;
@@ -364,7 +392,7 @@ const restApi: Api = {
       body: JSON.stringify({ username, useDefaultData })
     });
   },
-  
+
   getUser: async (uniqueId: string): Promise<UserData | null> => {
     try {
       return await restFetch<UserData>(`/users/${uniqueId}`);
@@ -372,12 +400,12 @@ const restApi: Api = {
       return null;
     }
   },
-  
+
   getAllUsers: async (): Promise<Record<string, UserData>> => {
     const users = await restFetch<UserData[]>('/users');
     return users.reduce((acc, user) => ({ ...acc, [user.uniqueId]: user }), {});
   },
-  
+
   deleteUser: async (uniqueId: string): Promise<boolean> => {
     try {
       await restFetch(`/users/${uniqueId}`, { method: 'DELETE' });
@@ -386,7 +414,19 @@ const restApi: Api = {
       return false;
     }
   },
-  
+
+  updateUser: async (uniqueId: string, updates: Partial<UserData>): Promise<boolean> => {
+    try {
+      await restFetch(`/users/${uniqueId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates)
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
   getRemainingTime: (user: UserData): number | null => {
     if (config.retentionHours <= 0) return null;
     const createdAt = new Date(user.createdAt).getTime();
@@ -394,15 +434,15 @@ const restApi: Api = {
     const remaining = expiresAt - Date.now();
     return remaining > 0 ? remaining : 0;
   },
-  
-  // ... pozostałe metody analogicznie
+
+  // Item templates
   addItemTemplate: async (uniqueId: string, template: Omit<ItemTemplate, 'id'>): Promise<ItemTemplate | null> => {
     return restFetch<ItemTemplate>(`/users/${uniqueId}/items`, {
       method: 'POST',
       body: JSON.stringify(template)
     });
   },
-  
+
   updateItemTemplate: async (uniqueId: string, templateId: string, updates: Partial<ItemTemplate>): Promise<boolean> => {
     try {
       await restFetch(`/users/${uniqueId}/items/${templateId}`, {
@@ -414,7 +454,7 @@ const restApi: Api = {
       return false;
     }
   },
-  
+
   deleteItemTemplate: async (uniqueId: string, templateId: string): Promise<boolean> => {
     try {
       await restFetch(`/users/${uniqueId}/items/${templateId}`, { method: 'DELETE' });
@@ -423,14 +463,15 @@ const restApi: Api = {
       return false;
     }
   },
-  
+
+  // Work templates
   addWorkTemplate: async (uniqueId: string, template: Omit<WorkTemplate, 'id'>): Promise<WorkTemplate | null> => {
     return restFetch<WorkTemplate>(`/users/${uniqueId}/works`, {
       method: 'POST',
       body: JSON.stringify(template)
     });
   },
-  
+
   updateWorkTemplate: async (uniqueId: string, templateId: string, updates: Partial<WorkTemplate>): Promise<boolean> => {
     try {
       await restFetch(`/users/${uniqueId}/works/${templateId}`, {
@@ -442,7 +483,7 @@ const restApi: Api = {
       return false;
     }
   },
-  
+
   deleteWorkTemplate: async (uniqueId: string, templateId: string): Promise<boolean> => {
     try {
       await restFetch(`/users/${uniqueId}/works/${templateId}`, { method: 'DELETE' });
@@ -451,14 +492,15 @@ const restApi: Api = {
       return false;
     }
   },
-  
+
+  // Renovation templates
   addRenovationTemplate: async (uniqueId: string, template: Omit<RoomRenovationTemplate, 'id'>): Promise<RoomRenovationTemplate | null> => {
     return restFetch<RoomRenovationTemplate>(`/users/${uniqueId}/renovations`, {
       method: 'POST',
       body: JSON.stringify(template)
     });
   },
-  
+
   updateRenovationTemplate: async (uniqueId: string, templateId: string, updates: Partial<RoomRenovationTemplate>): Promise<boolean> => {
     try {
       await restFetch(`/users/${uniqueId}/renovations/${templateId}`, {
@@ -470,7 +512,7 @@ const restApi: Api = {
       return false;
     }
   },
-  
+
   deleteRenovationTemplate: async (uniqueId: string, templateId: string): Promise<boolean> => {
     try {
       await restFetch(`/users/${uniqueId}/renovations/${templateId}`, { method: 'DELETE' });
@@ -479,14 +521,15 @@ const restApi: Api = {
       return false;
     }
   },
-  
+
+  // Estimates
   createEstimate: async (uniqueId: string, estimate: Estimate): Promise<Estimate | null> => {
     return restFetch<Estimate>(`/users/${uniqueId}/estimates`, {
       method: 'POST',
       body: JSON.stringify(estimate)
     });
   },
-  
+
   updateEstimate: async (uniqueId: string, estimateId: string, updates: Partial<Estimate>): Promise<boolean> => {
     try {
       await restFetch(`/users/${uniqueId}/estimates/${estimateId}`, {
@@ -498,7 +541,7 @@ const restApi: Api = {
       return false;
     }
   },
-  
+
   deleteEstimate: async (uniqueId: string, estimateId: string): Promise<boolean> => {
     try {
       await restFetch(`/users/${uniqueId}/estimates/${estimateId}`, { method: 'DELETE' });
@@ -507,7 +550,7 @@ const restApi: Api = {
       return false;
     }
   },
-  
+
   getEstimate: async (uniqueId: string, estimateId: string): Promise<Estimate | null> => {
     try {
       return await restFetch<Estimate>(`/users/${uniqueId}/estimates/${estimateId}`);
@@ -533,7 +576,7 @@ export const mockApi = {
     cleanupExpiredAccounts();
     const users = getLocalUsers();
     const uniqueId = uuidv4().slice(0, 8);
-    
+
     const newUser: UserData = {
       username,
       uniqueId,
@@ -545,7 +588,7 @@ export const mockApi = {
       estimates: [],
       createdAt: new Date().toISOString()
     };
-    
+
     users[uniqueId] = newUser;
     saveLocalUsers(users);
     return newUser;
