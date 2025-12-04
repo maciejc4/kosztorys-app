@@ -280,9 +280,9 @@ const ItemTemplateModal: React.FC<{
 }> = memo(({ template, onSave, onClose }) => {
   const { t } = useTranslation();
   const [name, setName] = useState(template?.name || '');
-  const [unit, setUnit] = useState<UnitType>(template?.unit || 'm2');
+  const [unit, setUnit] = useState<UnitType>(template?.unit || 'SQUARE_METER');
   const [price, setPrice] = useState(template?.pricePerUnit?.toString() || '');
-  const [category, setCategory] = useState<'labor' | 'material'>(template?.category || 'labor');
+  const [category, setCategory] = useState<'LABOR' | 'MATERIAL'>(template?.category || 'LABOR');
   const [workCategory, setWorkCategory] = useState<WorkCategory | undefined>(template?.workCategory);
 
   const handleSubmit = () => {
@@ -344,7 +344,7 @@ const ItemTemplateModal: React.FC<{
 interface WorkItem {
   itemTemplateId: string;
   quantityPerUnit: number;
-  category: 'labor' | 'material';
+  category: 'LABOR' | 'MATERIAL';
 }
 
 // ============ Work Template Modal (with inline item creation) ============
@@ -357,19 +357,19 @@ const WorkTemplateModal: React.FC<{
 }> = memo(({ user, template, onSave, onClose, onUserUpdate }) => {
   const { t } = useTranslation();
   const [name, setName] = useState(template?.name || '');
-  const [unit, setUnit] = useState<UnitType>(template?.unit || 'm2');
-  const [roomTypes, setRoomTypes] = useState<RoomType[]>(template?.roomTypes || ['salon']);
+  const [unit, setUnit] = useState<UnitType>(template?.unit || 'SQUARE_METER');
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>(template?.roomTypes || ['LIVING_ROOM']);
   const [showInlineItemModal, setShowInlineItemModal] = useState(false);
-  const [inlineItemCategory, setInlineItemCategory] = useState<'labor' | 'material'>('material');
+  const [inlineItemCategory, setInlineItemCategory] = useState<'LABOR' | 'MATERIAL'>('MATERIAL');
   
   const buildInitialItems = (): WorkItem[] => {
     const items: WorkItem[] = [];
     if (template) {
       if (template.laborItemId) {
-        items.push({ itemTemplateId: template.laborItemId, quantityPerUnit: 1, category: 'labor' });
+        items.push({ itemTemplateId: template.laborItemId, quantityPerUnit: 1, category: 'LABOR' });
       }
       template.materials.forEach(m => {
-        items.push({ itemTemplateId: m.itemTemplateId, quantityPerUnit: m.quantityPerUnit, category: 'material' });
+        items.push({ itemTemplateId: m.itemTemplateId, quantityPerUnit: m.quantityPerUnit, category: 'MATERIAL' });
       });
     }
     return items;
@@ -378,11 +378,11 @@ const WorkTemplateModal: React.FC<{
   const [items, setItems] = useState<WorkItem[]>(buildInitialItems);
   const [newItemId, setNewItemId] = useState('');
   const [newItemQty, setNewItemQty] = useState('1');
-  const [newItemCategory, setNewItemCategory] = useState<'labor' | 'material'>('material');
+  const [newItemCategory, setNewItemCategory] = useState<'LABOR' | 'MATERIAL'>('MATERIAL');
 
-  const laborItems = user.itemTemplates.filter(t => t.category === 'labor');
-  const materialItems = user.itemTemplates.filter(t => t.category === 'material');
-  const allItems = newItemCategory === 'labor' ? laborItems : materialItems;
+  const laborItems = user.itemTemplates.filter(t => t.category === 'LABOR');
+  const materialItems = user.itemTemplates.filter(t => t.category === 'MATERIAL');
+  const allItems = newItemCategory === 'LABOR' ? laborItems : materialItems;
 
   const addItem = () => {
     if (!newItemId || !newItemQty) return;
@@ -428,11 +428,11 @@ const WorkTemplateModal: React.FC<{
       return;
     }
     
-    const laborItem = items.find(i => i.category === 'labor');
+    const laborItem = items.find(i => i.category === 'LABOR');
     const laborTemplate = laborItem ? user.itemTemplates.find(t => t.id === laborItem.itemTemplateId) : null;
     
     const materials: WorkMaterial[] = items
-      .filter(i => i.category === 'material')
+      .filter(i => i.category === 'MATERIAL')
       .map(i => ({ itemTemplateId: i.itemTemplateId, quantityPerUnit: i.quantityPerUnit }));
     
     onSave({ 
@@ -445,8 +445,8 @@ const WorkTemplateModal: React.FC<{
     });
   };
 
-  const laborItemsInWork = items.filter(i => i.category === 'labor');
-  const materialItemsInWork = items.filter(i => i.category === 'material');
+  const laborItemsInWork = items.filter(i => i.category === 'LABOR');
+  const materialItemsInWork = items.filter(i => i.category === 'MATERIAL');
   
   const calcLaborTotal = () => laborItemsInWork.reduce((sum, item) => {
     const template = user.itemTemplates.find(t => t.id === item.itemTemplateId);
@@ -546,13 +546,13 @@ const WorkTemplateModal: React.FC<{
             <div style={{ background: 'var(--gray-100)', padding: '0.5rem', borderRadius: 'var(--radius)' }}>
               <div className="flex gap-1 mb-1">
                 <button 
-                  className={`filter-pill ${newItemCategory === 'labor' ? 'active' : ''}`}
-                  onClick={() => { setNewItemCategory('labor'); setNewItemId(''); }}
+                  className={`filter-pill ${newItemCategory === 'LABOR' ? 'active' : ''}`}
+                  onClick={() => { setNewItemCategory('LABOR'); setNewItemId(''); }}
                   style={{ fontSize: '0.7rem' }}
                 >🔧 {t('common.labor')}</button>
                 <button 
-                  className={`filter-pill ${newItemCategory === 'material' ? 'active' : ''}`}
-                  onClick={() => { setNewItemCategory('material'); setNewItemId(''); }}
+                  className={`filter-pill ${newItemCategory === 'MATERIAL' ? 'active' : ''}`}
+                  onClick={() => { setNewItemCategory('MATERIAL'); setNewItemId(''); }}
                   style={{ fontSize: '0.7rem' }}
                 >📦 {t('common.material')}</button>
               </div>
@@ -610,7 +610,7 @@ const WorkTemplateModal: React.FC<{
     </div>
     {showInlineItemModal && (
       <ItemTemplateModal 
-        template={{ id: '', name: '', unit: 'm2', pricePerUnit: 0, category: inlineItemCategory }}
+        template={{ id: '', name: '', unit: 'SQUARE_METER', pricePerUnit: 0, category: inlineItemCategory }}
         onSave={handleInlineItemSave}
         onClose={() => setShowInlineItemModal(false)}
       />
@@ -629,7 +629,7 @@ const RenovationTemplateModal: React.FC<{
 }> = memo(({ user, template, onSave, onClose, onUserUpdate }) => {
   const { t } = useTranslation();
   const [name, setName] = useState(template?.name || '');
-  const [roomType, setRoomType] = useState<RoomType>(template?.roomType || 'salon');
+  const [roomType, setRoomType] = useState<RoomType>(template?.roomType || 'LIVING_ROOM');
   const [description, setDescription] = useState(template?.description || '');
   const [works, setWorks] = useState<{ workTemplateId: string; defaultQuantity: number }[]>(template?.works || []);
   const [newWorkId, setNewWorkId] = useState('');
@@ -733,7 +733,7 @@ const RenovationTemplateModal: React.FC<{
     {showInlineWorkModal && (
       <WorkTemplateModal 
         user={user}
-        template={{ id: '', name: '', unit: 'm2', laborPrice: 0, materials: [], roomTypes: [roomType] }}
+        template={{ id: '', name: '', unit: 'SQUARE_METER', laborPrice: 0, materials: [], roomTypes: [roomType] }}
         onSave={handleInlineWorkSave}
         onClose={() => setShowInlineWorkModal(false)}
         onUserUpdate={onUserUpdate}
@@ -748,7 +748,7 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<ItemTemplate | null>(null);
-  const [filter, setFilter] = useState<'all' | 'labor' | 'material'>('all');
+  const [filter, setFilter] = useState<'all' | 'LABOR' | 'MATERIAL'>('all');
   const [workCategoryFilter, setWorkCategoryFilter] = useState<WorkCategory | 'all'>('all');
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
@@ -864,10 +864,10 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
             <button className={`filter-pill ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
               {t('common.all')} ({user.itemTemplates.length})
             </button>
-            <button className={`filter-pill ${filter === 'labor' ? 'active' : ''}`} onClick={() => setFilter('labor')}>
+            <button className={`filter-pill ${filter === 'LABOR' ? 'active' : ''}`} onClick={() => setFilter('LABOR')}>
               {t('common.labor')}
             </button>
-            <button className={`filter-pill ${filter === 'material' ? 'active' : ''}`} onClick={() => setFilter('material')}>
+            <button className={`filter-pill ${filter === 'MATERIAL' ? 'active' : ''}`} onClick={() => setFilter('MATERIAL')}>
               {t('common.materials')}
             </button>
           </div>
@@ -1007,7 +1007,7 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
                     <div className="list-item-content">
                       <div className="list-item-title">{item.name}</div>
                       <div className="list-item-subtitle">
-                        <span className={`badge badge-${item.category}`}>{item.category === 'labor' ? t('common.labor') : t('common.material')}</span>
+                        <span className={`badge badge-${item.category}`}>{item.category === 'LABOR' ? t('common.labor') : t('common.material')}</span>
                         {' '}{item.pricePerUnit.toFixed(2)} {t('common.currency')}/{UNIT_LABELS[item.unit]}
                       </div>
                     </div>
@@ -1363,7 +1363,7 @@ const AddWorkModal: React.FC<{
     
     items.push({
       id: uuidv4(), templateId: work.id, name: work.name, unit: work.unit,
-      quantity: qty, pricePerUnit: work.laborPrice, category: 'labor',
+      quantity: qty, pricePerUnit: work.laborPrice, category: 'LABOR',
       workId: workGroupId, workName: work.name
     });
     
@@ -1374,7 +1374,7 @@ const AddWorkModal: React.FC<{
           items.push({
             id: uuidv4(), templateId: item.id, name: item.name, unit: item.unit,
             quantity: Math.ceil(m.quantityPerUnit * qty * 100) / 100,
-            pricePerUnit: item.pricePerUnit, category: 'material',
+            pricePerUnit: item.pricePerUnit, category: 'MATERIAL',
             workId: workGroupId, workName: work.name
           });
         }
@@ -1426,17 +1426,17 @@ const AddWorkModal: React.FC<{
           </div>
           {selectedWork && (
             <div className="form-group">
-              <label className="form-label">{t('estimates.workQuantity')} ({UNIT_LABELS[user.workTemplates.find(w => w.id === selectedWork)?.unit || 'm2']})</label>
+              <label className="form-label">{t('estimates.workQuantity')} ({UNIT_LABELS[user.workTemplates.find(w => w.id === selectedWork)?.unit || 'SQUARE_METER']})</label>
               <input type="number" className="form-input" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="0.1" step="0.1" />
             </div>
           )}
           {preview.length > 0 && (
             <div className="mt-2">
               <p className="text-sm font-medium mb-1">{t('estimates.itemsToAdd')}</p>
-              {preview.filter(i => i.category === 'labor').length > 0 && (
+              {preview.filter(i => i.category === 'LABOR').length > 0 && (
                 <div style={{ background: 'var(--accent-50)', padding: '0.5rem', borderRadius: 'var(--radius)', marginBottom: '0.5rem' }}>
                   <p className="text-xs font-semibold" style={{ color: 'var(--accent-600)' }}>{t('common.labor').toUpperCase()}</p>
-                  {preview.filter(i => i.category === 'labor').map(item => (
+                  {preview.filter(i => i.category === 'LABOR').map(item => (
                     <div key={item.id} className="item-row">
                       <span className="item-row-name">{item.name}</span>
                       <input type="number" className="item-row-input" value={item.quantity} onChange={(e) => updateQty(item.id, parseFloat(e.target.value) || 0)} />
@@ -1449,10 +1449,10 @@ const AddWorkModal: React.FC<{
                   ))}
                 </div>
               )}
-              {preview.filter(i => i.category === 'material').length > 0 && (
+              {preview.filter(i => i.category === 'MATERIAL').length > 0 && (
                 <div style={{ background: 'var(--gray-50)', padding: '0.5rem', borderRadius: 'var(--radius)' }}>
                   <p className="text-xs font-semibold text-gray">{t('common.materials').toUpperCase()}</p>
-                  {preview.filter(i => i.category === 'material').map(item => (
+                  {preview.filter(i => i.category === 'MATERIAL').map(item => (
                     <div key={item.id} className="item-row">
                       <span className="item-row-name">{item.name}</span>
                       <input type="number" className="item-row-input" value={item.quantity} onChange={(e) => updateQty(item.id, parseFloat(e.target.value) || 0)} />
@@ -1478,7 +1478,7 @@ const AddWorkModal: React.FC<{
     {showInlineWorkModal && (
       <WorkTemplateModal 
         user={user}
-        template={{ id: '', name: '', unit: 'm2', laborPrice: 0, materials: [], roomTypes: [roomType] }}
+        template={{ id: '', name: '', unit: 'SQUARE_METER', laborPrice: 0, materials: [], roomTypes: [roomType] }}
         onSave={handleInlineWorkSave}
         onClose={() => setShowInlineWorkModal(false)}
         onUserUpdate={onUserUpdate}
@@ -1571,8 +1571,8 @@ const EstimateEditor: React.FC<{
   const [notes, setNotes] = useState(estimate?.notes || '');
   
   // Room adding state
-  const [newRoomType, setNewRoomType] = useState<RoomType>('salon');
-  const [newRoomName, setNewRoomName] = useState(DEFAULT_ROOM_NAMES['salon']);
+  const [newRoomType, setNewRoomType] = useState<RoomType>('LIVING_ROOM');
+  const [newRoomName, setNewRoomName] = useState(DEFAULT_ROOM_NAMES['LIVING_ROOM']);
   
   // Work modal state
   const [showWorkModal, setShowWorkModal] = useState(false);
@@ -1590,8 +1590,8 @@ const EstimateEditor: React.FC<{
   const addRoom = () => {
     const name = newRoomName.trim() || DEFAULT_ROOM_NAMES[newRoomType];
     setRooms([...rooms, { id: uuidv4(), name, roomType: newRoomType, items: [] }]);
-    setNewRoomName(DEFAULT_ROOM_NAMES['salon']);
-    setNewRoomType('salon');
+    setNewRoomName(DEFAULT_ROOM_NAMES['LIVING_ROOM']);
+    setNewRoomType('LIVING_ROOM');
   };
 
   const removeRoom = (id: string) => {
@@ -1622,7 +1622,7 @@ const EstimateEditor: React.FC<{
       const workGroupId = uuidv4();
       items.push({ 
         id: uuidv4(), templateId: work.id, name: work.name, unit: work.unit, 
-        quantity: wr.defaultQuantity, pricePerUnit: work.laborPrice, category: 'labor',
+        quantity: wr.defaultQuantity, pricePerUnit: work.laborPrice, category: 'LABOR',
         workId: workGroupId, workName: work.name
       });
       if (includeMaterials) {
@@ -1632,7 +1632,7 @@ const EstimateEditor: React.FC<{
             items.push({ 
               id: uuidv4(), templateId: item.id, name: item.name, unit: item.unit, 
               quantity: Math.ceil(m.quantityPerUnit * wr.defaultQuantity * 100) / 100, 
-              pricePerUnit: item.pricePerUnit, category: 'material',
+              pricePerUnit: item.pricePerUnit, category: 'MATERIAL',
               workId: workGroupId, workName: work.name
             });
           }
@@ -1643,8 +1643,8 @@ const EstimateEditor: React.FC<{
   };
 
   const calcRoom = (r: EstimateRoom) => {
-    const labor = r.items.filter(i => i.category === 'labor').reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
-    const material = r.items.filter(i => i.category === 'material').reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
+    const labor = r.items.filter(i => i.category === 'LABOR').reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
+    const material = r.items.filter(i => i.category === 'MATERIAL').reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
     return { labor, material, total: labor + (includeMaterials ? material : 0) };
   };
 
@@ -1841,7 +1841,7 @@ const EstimateEditor: React.FC<{
                     <span className="room-type-icon">
                       {key === 'lazienka' && '🚿'}
                       {key === 'kuchnia' && '🍳'}
-                      {key === 'salon' && '🛋️'}
+                      {key === 'LIVING_ROOM' && '🛋️'}
                       {key === 'sypialnia' && '🛏️'}
                       {key === 'korytarz' && '🚪'}
                       {key === 'balkon' && '🌿'}
@@ -1945,7 +1945,7 @@ const EstimateEditor: React.FC<{
                       });
                       
                       return Array.from(workGroups.entries()).map(([workId, items]) => {
-                        const laborItem = items.find(i => i.category === 'labor');
+                        const laborItem = items.find(i => i.category === 'LABOR');
                         const workTotal = items.reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
                         
                         return laborItem ? (
@@ -1963,7 +1963,7 @@ const EstimateEditor: React.FC<{
                                   const ratio = oldQty > 0 ? newQty / oldQty : 1;
                                   items.forEach(item => {
                                     updateItem(room.id, item.id, { 
-                                      quantity: item.category === 'labor' ? newQty : Math.ceil(item.quantity * ratio * 100) / 100
+                                      quantity: item.category === 'LABOR' ? newQty : Math.ceil(item.quantity * ratio * 100) / 100
                                     });
                                   });
                                 }}
@@ -2049,7 +2049,7 @@ const EstimateEditor: React.FC<{
                       return Array.from(workGroups.entries()).map(([workId, items]) => {
                         const workName = items[0]?.workName || t('templates.works');
                         const workTotal = items.reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
-                        const laborItem = items.find(i => i.category === 'labor');
+                        const laborItem = items.find(i => i.category === 'LABOR');
                         
                         return (
                           <div key={workId} className="work-group-compact">
@@ -2069,7 +2069,7 @@ const EstimateEditor: React.FC<{
                                       // Update all items in this work group proportionally
                                       items.forEach(item => {
                                         updateItem(room.id, item.id, { 
-                                          quantity: item.category === 'labor' ? newQty : Math.ceil(item.quantity * ratio * 100) / 100
+                                          quantity: item.category === 'LABOR' ? newQty : Math.ceil(item.quantity * ratio * 100) / 100
                                         });
                                       });
                                     }}
@@ -2158,7 +2158,7 @@ const EstimateEditor: React.FC<{
                     
                     return Array.from(workGroups.entries()).map(([workId, items]) => {
                       const workName = items[0]?.workName || t('templates.works');
-                      const laborItem = items.find(i => i.category === 'labor');
+                      const laborItem = items.find(i => i.category === 'LABOR');
                       const workTotal = items.reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
                       
                       return (
@@ -2293,7 +2293,7 @@ const EstimatesView: React.FC<{ user: UserData; onUpdate: () => void; onEdit: (e
     let labor = 0, material = 0;
     for (const r of e.rooms) {
       for (const i of r.items) {
-        if (i.category === 'labor') labor += i.quantity * i.pricePerUnit;
+        if (i.category === 'LABOR') labor += i.quantity * i.pricePerUnit;
         else material += i.quantity * i.pricePerUnit;
       }
     }
@@ -2541,7 +2541,7 @@ const AdminPanel: React.FC = () => {
     let labor = 0, material = 0;
     for (const r of e.rooms) {
       for (const i of r.items) {
-        if (i.category === 'labor') labor += i.quantity * i.pricePerUnit;
+        if (i.category === 'LABOR') labor += i.quantity * i.pricePerUnit;
         else material += i.quantity * i.pricePerUnit;
       }
     }

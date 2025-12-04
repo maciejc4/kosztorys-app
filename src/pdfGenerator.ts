@@ -166,7 +166,7 @@ export const generatePDF = (
   for (const room of estimate.rooms) {
     for (const item of room.items) {
       const value = item.quantity * item.pricePerUnit;
-      if (item.category === 'labor') totalLabor += value;
+      if (item.category === 'LABOR') totalLabor += value;
       else totalMaterial += value;
     }
   }
@@ -224,8 +224,8 @@ export const generatePDF = (
       doc.text(sanitizePolish(`${room.name} (${ROOM_LABELS[room.roomType]})`), margin + 3, yPos + 5);
       yPos += 11;
 
-      const laborItems = room.items.filter(i => i.category === 'labor');
-      const materialItems = room.items.filter(i => i.category === 'material');
+      const laborItems = room.items.filter(i => i.category === 'LABOR');
+      const materialItems = room.items.filter(i => i.category === 'MATERIAL');
       
       // Grupowanie według prac dla kompaktowości
       const workGroups = groupByWork(room.items);
@@ -251,9 +251,9 @@ export const generatePDF = (
           for (const item of items) {
             checkNewPage(8);
             const value = item.quantity * item.pricePerUnit;
-            const prefix = item.category === 'material' ? '  - ' : '  ';
+            const prefix = item.category === 'MATERIAL' ? '  - ' : '  ';
             doc.setFontSize(7);
-            const itemColor = item.category === 'material' ? colors.gray : colors.dark;
+            const itemColor = item.category === 'MATERIAL' ? colors.gray : colors.dark;
             doc.setTextColor(...itemColor);
             
             const name = item.name.length > 40 ? item.name.substring(0, 37) + '...' : item.name;
@@ -273,7 +273,7 @@ export const generatePDF = (
             checkNewPage(8);
             const value = item.quantity * item.pricePerUnit;
             doc.setFontSize(7);
-            const itemColor = item.category === 'material' ? colors.gray : colors.dark;
+            const itemColor = item.category === 'MATERIAL' ? colors.gray : colors.dark;
             doc.setTextColor(...itemColor);
             const name = item.name.length > 40 ? item.name.substring(0, 37) + '...' : item.name;
             doc.text(sanitizePolish(name), margin + 2, yPos);
@@ -290,7 +290,7 @@ export const generatePDF = (
         
         for (const [workId, items] of workGroups) {
           checkNewPage(8);
-          const laborItem = items.find(i => i.category === 'labor') || items[0];
+          const laborItem = items.find(i => i.category === 'LABOR') || items[0];
           const workName = laborItem?.workName || laborItem?.name || 'Praca';
           
           // Znajdź powiązane materiały
