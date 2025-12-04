@@ -13,6 +13,11 @@ import { queueOperation, initSyncService } from './syncService';
 import './i18n';
 import { changeLanguage, SUPPORTED_LANGUAGES, getCurrentLanguage } from './i18n';
 
+// ============ APP CONFIGURATION ============
+// Set to true to require online access (blocks offline usage)
+// Set to false to allow full PWA/offline functionality
+const REQUIRE_ONLINE_ACCESS = true;
+
 // Helper to format remaining time
 const formatRemainingTime = (ms: number): string => {
   const hours = Math.floor(ms / (1000 * 60 * 60));
@@ -2225,6 +2230,58 @@ const AdminPanel: React.FC = () => {
   );
 };
 
+// ============ Small Ad Placeholder ============
+const SmallAdPlaceholder: React.FC = memo(() => {
+  return (
+    <div className="small-ad-placeholder" style={{
+      background: 'linear-gradient(135deg, var(--gray-50), var(--gray-100))',
+      border: '1px dashed var(--gray-300)',
+      borderRadius: 'var(--radius)',
+      padding: '0.5rem 1rem',
+      textAlign: 'center',
+      margin: '0.5rem 0',
+      fontSize: '0.75rem',
+      color: 'var(--gray-400)'
+    }}>
+      {/* Ad placeholder - replace with actual ad code */}
+      <span>Reklama</span>
+    </div>
+  );
+});
+
+// ============ Offline Required Screen ============
+const OfflineScreen: React.FC<{ onRetry: () => void }> = memo(({ onRetry }) => {
+  const { t } = useTranslation();
+  
+  return (
+    <div className="login-container">
+      <div className="login-card" style={{ textAlign: 'center' }}>
+        <div className="login-logo">
+          <div className="login-logo-icon" style={{ fontSize: '4rem' }}>📡</div>
+          <h1 className="login-title">{t('offline.title')}</h1>
+          <p className="login-subtitle">{t('offline.subtitle')}</p>
+        </div>
+        
+        <div style={{ background: 'var(--warning-light)', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1.5rem' }}>
+          <p style={{ color: 'var(--warning)', fontSize: '0.9rem' }}>
+            {t('offline.message')}
+          </p>
+        </div>
+        
+        <button className="btn btn-primary btn-block" onClick={onRetry}>
+          🔄 {t('offline.retry')}
+        </button>
+        
+        <SmallAdPlaceholder />
+        
+        <p className="text-xs text-gray" style={{ marginTop: '1rem' }}>
+          {t('offline.hint')}
+        </p>
+      </div>
+    </div>
+  );
+});
+
 // ============ Main App ============
 type TabType = 'estimates' | 'templates' | 'settings';
 
@@ -2236,9 +2293,16 @@ const App: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [editingEstimate, setEditingEstimate] = useState<Estimate | null>(null);
   const [showEstimateEditor, setShowEstimateEditor] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
     initSyncService({ backendUrl: 'http://localhost:8080/api' });
+    
+    // Listen for online/offline changes
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
     
     const hash = window.location.hash.slice(1);
     if (hash === 'admin') { setIsAdmin(true); return; }
@@ -2246,7 +2310,16 @@ const App: React.FC = () => {
       const u = mockApi.getUser(hash);
       if (u) setUser(u);
     }
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
+
+  const handleRetryConnection = () => {
+    setIsOnline(navigator.onLine);
+  };
 
   const handleLogin = (u: UserData) => {
     setUser(u);
@@ -2293,6 +2366,11 @@ const App: React.FC = () => {
     setShowEstimateEditor(false);
     setEditingEstimate(null);
   };
+
+  // Block offline access if REQUIRE_ONLINE_ACCESS is enabled (skip for admin)
+  if (REQUIRE_ONLINE_ACCESS && !isOnline && !isAdmin) {
+    return <OfflineScreen onRetry={handleRetryConnection} />;
+  }
 
   if (isAdmin) return <AdminPanel />;
   if (!user) return <Login onLogin={handleLogin} />;

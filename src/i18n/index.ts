@@ -239,6 +239,15 @@ const resources = {
         pending: 'Oczekuje',
         error: 'Błąd synchronizacji',
         synced: 'Zsynchronizowano'
+      },
+      
+      // Offline screen
+      offline: {
+        title: 'Brak połączenia',
+        subtitle: 'Aplikacja wymaga dostępu do internetu',
+        message: 'Aby korzystać z aplikacji, połącz się z internetem. Twoje dane są bezpieczne i zostaną zsynchronizowane po przywróceniu połączenia.',
+        retry: 'Sprawdź połączenie',
+        hint: 'Sprawdź ustawienia Wi-Fi lub danych mobilnych'
       }
     }
   },
@@ -468,6 +477,14 @@ const resources = {
         pending: 'Pending',
         error: 'Sync error',
         synced: 'Synced'
+      },
+      
+      offline: {
+        title: 'No Connection',
+        subtitle: 'This app requires internet access',
+        message: 'To use the app, please connect to the internet. Your data is safe and will be synchronized once the connection is restored.',
+        retry: 'Check Connection',
+        hint: 'Check your Wi-Fi or mobile data settings'
       }
     }
   },
@@ -659,6 +676,14 @@ const resources = {
         pending: 'Ausstehend',
         error: 'Sync-Fehler',
         synced: 'Synchronisiert'
+      },
+      
+      offline: {
+        title: 'Keine Verbindung',
+        subtitle: 'Diese App erfordert Internetzugang',
+        message: 'Um die App zu nutzen, verbinden Sie sich bitte mit dem Internet. Ihre Daten sind sicher und werden synchronisiert, sobald die Verbindung wiederhergestellt ist.',
+        retry: 'Verbindung prüfen',
+        hint: 'Überprüfen Sie Ihre WLAN- oder Mobilfunk-Einstellungen'
       }
     }
   },
@@ -850,6 +875,14 @@ const resources = {
         pending: 'En attente',
         error: 'Erreur de sync',
         synced: 'Synchronisé'
+      },
+      
+      offline: {
+        title: 'Pas de connexion',
+        subtitle: 'Cette application nécessite un accès Internet',
+        message: 'Pour utiliser l\'application, veuillez vous connecter à Internet. Vos données sont en sécurité et seront synchronisées une fois la connexion rétablie.',
+        retry: 'Vérifier la connexion',
+        hint: 'Vérifiez vos paramètres Wi-Fi ou données mobiles'
       }
     }
   }
