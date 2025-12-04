@@ -2,10 +2,10 @@
 
 export type UnitType = 'mb' | 'm2' | 'szt' | 'godz' | 'kpl' | 'l' | 'kg';
 
-export type RoomType = 'lazienka' | 'kuchnia' | 'salon' | 'sypialnia' | 'korytarz' | 'balkon' | 'inne';
+export type RoomType = 'lazienka' | 'kuchnia' | 'salon' | 'sypialnia' | 'korytarz' | 'balkon' | 'dach_plaski' | 'dach_skosny' | 'inne';
 
 // Work categories for better organization
-export type WorkCategory = 'elektryka' | 'hydraulika' | 'glazurnictwo' | 'malarstwo' | 'podlogi' | 'suche_zabudowy' | 'montaz' | 'demontaz' | 'inne';
+export type WorkCategory = 'elektryka' | 'hydraulika' | 'glazurnictwo' | 'malarstwo' | 'podlogi' | 'suche_zabudowy' | 'montaz' | 'demontaz' | 'dekarstwo' | 'inne';
 
 export const WORK_CATEGORY_LABELS: Record<WorkCategory, string> = {
   elektryka: '⚡ Elektryka',
@@ -16,6 +16,7 @@ export const WORK_CATEGORY_LABELS: Record<WorkCategory, string> = {
   suche_zabudowy: '📐 Suche zabudowy',
   montaz: '🔧 Montaż',
   demontaz: '🔨 Demontaż',
+  dekarstwo: '🏠 Dekarstwo',
   inne: '📦 Inne'
 };
 
@@ -26,6 +27,8 @@ export const ROOM_LABELS: Record<RoomType, string> = {
   sypialnia: 'Sypialnia',
   korytarz: 'Korytarz/Przedpokój',
   balkon: 'Balkon/Taras',
+  dach_plaski: 'Dach płaski',
+  dach_skosny: 'Dach skośny',
   inne: 'Inne'
 };
 
@@ -37,6 +40,8 @@ export const DEFAULT_ROOM_NAMES: Record<RoomType, string> = {
   sypialnia: 'Sypialnia',
   korytarz: 'Korytarz',
   balkon: 'Balkon',
+  dach_plaski: 'Dach płaski',
+  dach_skosny: 'Dach skośny',
   inne: 'Pomieszczenie'
 };
 
@@ -312,6 +317,95 @@ export const DEFAULT_ITEM_TEMPLATES: ItemTemplate[] = [
   { id: 'M76', name: 'Styropian EPS 100 10cm', unit: 'm2', pricePerUnit: 45, category: 'material', workCategory: 'suche_zabudowy' },
   { id: 'M77', name: 'Wkręty do płyt G-K', unit: 'szt', pricePerUnit: 0.15, category: 'material', workCategory: 'suche_zabudowy' },
   { id: 'M78', name: 'Taśma do płyt G-K', unit: 'mb', pricePerUnit: 1.5, category: 'material', workCategory: 'suche_zabudowy' },
+  
+  // ========== DEKARSTWO (Labor) ==========
+  // Dachy płaskie
+  { id: 'L100', name: 'Układanie papy termozgrzewalnej', unit: 'm2', pricePerUnit: 45, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L101', name: 'Układanie membrany PVC/EPDM', unit: 'm2', pricePerUnit: 55, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L102', name: 'Naprawa dachu płaskiego', unit: 'm2', pricePerUnit: 35, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L103', name: 'Ocieplenie dachu płaskiego styropianem', unit: 'm2', pricePerUnit: 65, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L104', name: 'Wykonanie wylewki spadkowej', unit: 'm2', pricePerUnit: 75, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L105', name: 'Montaż obróbek blacharskich (attyka)', unit: 'mb', pricePerUnit: 85, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L106', name: 'Montaż wpustu dachowego', unit: 'szt', pricePerUnit: 250, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L107', name: 'Zerwanie starej papy', unit: 'm2', pricePerUnit: 25, category: 'labor', workCategory: 'dekarstwo' },
+  
+  // Dachy skośne
+  { id: 'L110', name: 'Montaż dachówki ceramicznej', unit: 'm2', pricePerUnit: 75, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L111', name: 'Montaż dachówki betonowej', unit: 'm2', pricePerUnit: 65, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L112', name: 'Montaż blachodachówki', unit: 'm2', pricePerUnit: 45, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L113', name: 'Montaż blachy na rąbek stojący', unit: 'm2', pricePerUnit: 95, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L114', name: 'Montaż gontu bitumicznego', unit: 'm2', pricePerUnit: 55, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L115', name: 'Montaż łat i kontrłat', unit: 'm2', pricePerUnit: 35, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L116', name: 'Montaż folii dachowej (membrana)', unit: 'm2', pricePerUnit: 15, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L117', name: 'Ocieplenie dachu skośnego wełną', unit: 'm2', pricePerUnit: 55, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L118', name: 'Montaż okna dachowego', unit: 'szt', pricePerUnit: 450, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L119', name: 'Montaż wyłazu dachowego', unit: 'szt', pricePerUnit: 350, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L120', name: 'Montaż rynien PVC', unit: 'mb', pricePerUnit: 45, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L121', name: 'Montaż rynien stalowych', unit: 'mb', pricePerUnit: 65, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L122', name: 'Montaż rur spustowych', unit: 'mb', pricePerUnit: 55, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L123', name: 'Montaż obróbek blacharskich', unit: 'mb', pricePerUnit: 75, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L124', name: 'Montaż kominka wentylacyjnego', unit: 'szt', pricePerUnit: 180, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L125', name: 'Wymiana więźby dachowej', unit: 'm2', pricePerUnit: 180, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L126', name: 'Impregnacja więźby dachowej', unit: 'm2', pricePerUnit: 25, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L127', name: 'Demontaż starego pokrycia', unit: 'm2', pricePerUnit: 30, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L128', name: 'Montaż podbitki dachowej PVC', unit: 'm2', pricePerUnit: 85, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L129', name: 'Montaż podbitki drewnianej', unit: 'm2', pricePerUnit: 95, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L130', name: 'Montaż ławy kominiarskiej', unit: 'szt', pricePerUnit: 280, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L131', name: 'Montaż stopni kominiarskich', unit: 'szt', pricePerUnit: 85, category: 'labor', workCategory: 'dekarstwo' },
+  { id: 'L132', name: 'Montaż płotków śniegowych', unit: 'mb', pricePerUnit: 95, category: 'labor', workCategory: 'dekarstwo' },
+  
+  // ========== MATERIAŁY - DEKARSTWO ==========
+  // Dachy płaskie
+  { id: 'M100', name: 'Papa termozgrzewalna wierzchnia', unit: 'm2', pricePerUnit: 28, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M101', name: 'Papa termozgrzewalna podkładowa', unit: 'm2', pricePerUnit: 18, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M102', name: 'Membrana PVC dachowa', unit: 'm2', pricePerUnit: 45, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M103', name: 'Membrana EPDM', unit: 'm2', pricePerUnit: 55, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M104', name: 'Styropian dachowy EPS 100 10cm', unit: 'm2', pricePerUnit: 48, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M105', name: 'Styropian dachowy EPS 100 15cm', unit: 'm2', pricePerUnit: 72, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M106', name: 'Klej do styropianu', unit: 'kg', pricePerUnit: 8, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M107', name: 'Wpust dachowy DN100', unit: 'szt', pricePerUnit: 180, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M108', name: 'Blacha attykowa', unit: 'mb', pricePerUnit: 65, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M109', name: 'Rozprawa asfaltowa (abizol)', unit: 'kg', pricePerUnit: 12, category: 'material', workCategory: 'dekarstwo' },
+  
+  // Dachy skośne - pokrycia
+  { id: 'M110', name: 'Dachówka ceramiczna', unit: 'm2', pricePerUnit: 85, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M111', name: 'Dachówka betonowa', unit: 'm2', pricePerUnit: 55, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M112', name: 'Blachodachówka modułowa', unit: 'm2', pricePerUnit: 48, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M113', name: 'Blachodachówka panelowa', unit: 'm2', pricePerUnit: 65, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M114', name: 'Blacha na rąbek stojący', unit: 'm2', pricePerUnit: 95, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M115', name: 'Gont bitumiczny', unit: 'm2', pricePerUnit: 45, category: 'material', workCategory: 'dekarstwo' },
+  
+  // Dachy skośne - konstrukcja i akcesoria
+  { id: 'M116', name: 'Łata dachowa 4x5cm', unit: 'mb', pricePerUnit: 6, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M117', name: 'Kontrłata 2.5x5cm', unit: 'mb', pricePerUnit: 4, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M118', name: 'Folia dachowa paroprzepuszczalna', unit: 'm2', pricePerUnit: 8, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M119', name: 'Membrana dachowa wysokoparoprzepuszczalna', unit: 'm2', pricePerUnit: 15, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M120', name: 'Wełna mineralna dachowa 15cm', unit: 'm2', pricePerUnit: 55, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M121', name: 'Wełna mineralna dachowa 20cm', unit: 'm2', pricePerUnit: 75, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M122', name: 'Okno dachowe 78x118', unit: 'szt', pricePerUnit: 1200, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M123', name: 'Okno dachowe 55x78', unit: 'szt', pricePerUnit: 850, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M124', name: 'Kołnierz do okna dachowego', unit: 'szt', pricePerUnit: 280, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M125', name: 'Wyłaz dachowy', unit: 'szt', pricePerUnit: 650, category: 'material', workCategory: 'dekarstwo' },
+  
+  // Rynny i obróbki
+  { id: 'M126', name: 'Rynna PVC 125mm', unit: 'mb', pricePerUnit: 28, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M127', name: 'Rynna stalowa ocynkowana 150mm', unit: 'mb', pricePerUnit: 55, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M128', name: 'Rura spustowa PVC 90mm', unit: 'mb', pricePerUnit: 25, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M129', name: 'Rura spustowa stalowa 100mm', unit: 'mb', pricePerUnit: 48, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M130', name: 'Hak rynnowy PVC', unit: 'szt', pricePerUnit: 8, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M131', name: 'Hak rynnowy stalowy', unit: 'szt', pricePerUnit: 15, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M132', name: 'Blacha obróbkowa powlekana', unit: 'm2', pricePerUnit: 65, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M133', name: 'Gąsior dachowy ceramiczny', unit: 'mb', pricePerUnit: 45, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M134', name: 'Gąsior dachowy betonowy', unit: 'mb', pricePerUnit: 35, category: 'material', workCategory: 'dekarstwo' },
+  
+  // Akcesoria bezpieczeństwa i wentylacja
+  { id: 'M135', name: 'Kominek wentylacyjny', unit: 'szt', pricePerUnit: 120, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M136', name: 'Ława kominiarska', unit: 'szt', pricePerUnit: 350, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M137', name: 'Stopień kominiarski', unit: 'szt', pricePerUnit: 65, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M138', name: 'Płotek przeciwśniegowy', unit: 'mb', pricePerUnit: 85, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M139', name: 'Podbitka PVC', unit: 'm2', pricePerUnit: 55, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M140', name: 'Podbitka drewniana (deska)', unit: 'm2', pricePerUnit: 75, category: 'material', workCategory: 'dekarstwo' },
+  { id: 'M141', name: 'Impregnat do drewna', unit: 'l', pricePerUnit: 35, category: 'material', workCategory: 'dekarstwo' },
 ];
 
 // Default work templates (with materials)
@@ -759,6 +853,332 @@ export const DEFAULT_WORK_TEMPLATES: WorkTemplate[] = [
     ],
     roomTypes: ['lazienka']
   },
+  
+  // ========== DEKARSTWO - DACHY PŁASKIE ==========
+  {
+    id: 'W40',
+    name: 'Pokrycie dachu płaskiego papą',
+    unit: 'm2',
+    laborPrice: 45,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M101', quantityPerUnit: 1.1 },
+      { itemTemplateId: 'M100', quantityPerUnit: 1.1 },
+    ],
+    roomTypes: ['dach_plaski']
+  },
+  {
+    id: 'W41',
+    name: 'Pokrycie dachu płaskiego membraną PVC',
+    unit: 'm2',
+    laborPrice: 55,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M102', quantityPerUnit: 1.15 },
+    ],
+    roomTypes: ['dach_plaski']
+  },
+  {
+    id: 'W42',
+    name: 'Ocieplenie dachu płaskiego 10cm',
+    unit: 'm2',
+    laborPrice: 65,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M104', quantityPerUnit: 1.05 },
+      { itemTemplateId: 'M106', quantityPerUnit: 3 },
+    ],
+    roomTypes: ['dach_plaski']
+  },
+  {
+    id: 'W43',
+    name: 'Ocieplenie dachu płaskiego 15cm',
+    unit: 'm2',
+    laborPrice: 70,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M105', quantityPerUnit: 1.05 },
+      { itemTemplateId: 'M106', quantityPerUnit: 4 },
+    ],
+    roomTypes: ['dach_plaski']
+  },
+  {
+    id: 'W44',
+    name: 'Zerwanie starej papy i pokrycie nową',
+    unit: 'm2',
+    laborPrice: 70,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M101', quantityPerUnit: 1.1 },
+      { itemTemplateId: 'M100', quantityPerUnit: 1.1 },
+    ],
+    roomTypes: ['dach_plaski']
+  },
+  {
+    id: 'W45',
+    name: 'Obróbka attyki',
+    unit: 'mb',
+    laborPrice: 85,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M108', quantityPerUnit: 1.1 },
+    ],
+    roomTypes: ['dach_plaski']
+  },
+  {
+    id: 'W46',
+    name: 'Montaż wpustu dachowego',
+    unit: 'szt',
+    laborPrice: 250,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M107', quantityPerUnit: 1 },
+    ],
+    roomTypes: ['dach_plaski']
+  },
+  
+  // ========== DEKARSTWO - DACHY SKOŚNE ==========
+  {
+    id: 'W50',
+    name: 'Pokrycie dachu dachówką ceramiczną',
+    unit: 'm2',
+    laborPrice: 75,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M110', quantityPerUnit: 1.05 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W51',
+    name: 'Pokrycie dachu dachówką betonową',
+    unit: 'm2',
+    laborPrice: 65,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M111', quantityPerUnit: 1.05 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W52',
+    name: 'Pokrycie dachu blachodachówką',
+    unit: 'm2',
+    laborPrice: 45,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M112', quantityPerUnit: 1.1 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W53',
+    name: 'Pokrycie dachu blachą na rąbek stojący',
+    unit: 'm2',
+    laborPrice: 95,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M114', quantityPerUnit: 1.1 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W54',
+    name: 'Pokrycie dachu gontem bitumicznym',
+    unit: 'm2',
+    laborPrice: 55,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M115', quantityPerUnit: 1.1 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W55',
+    name: 'Montaż łat i kontrłat',
+    unit: 'm2',
+    laborPrice: 35,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M116', quantityPerUnit: 4 },
+      { itemTemplateId: 'M117', quantityPerUnit: 3 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W56',
+    name: 'Montaż membrany dachowej',
+    unit: 'm2',
+    laborPrice: 15,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M119', quantityPerUnit: 1.15 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W57',
+    name: 'Ocieplenie dachu skośnego wełną 15cm',
+    unit: 'm2',
+    laborPrice: 55,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M120', quantityPerUnit: 1.05 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W58',
+    name: 'Ocieplenie dachu skośnego wełną 20cm',
+    unit: 'm2',
+    laborPrice: 60,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M121', quantityPerUnit: 1.05 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W59',
+    name: 'Montaż okna dachowego 78x118',
+    unit: 'szt',
+    laborPrice: 450,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M122', quantityPerUnit: 1 },
+      { itemTemplateId: 'M124', quantityPerUnit: 1 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W60',
+    name: 'Montaż okna dachowego 55x78',
+    unit: 'szt',
+    laborPrice: 400,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M123', quantityPerUnit: 1 },
+      { itemTemplateId: 'M124', quantityPerUnit: 1 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W61',
+    name: 'Montaż rynien PVC z rurą spustową',
+    unit: 'mb',
+    laborPrice: 55,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M126', quantityPerUnit: 1.05 },
+      { itemTemplateId: 'M130', quantityPerUnit: 1.5 },
+    ],
+    roomTypes: ['dach_skosny', 'dach_plaski']
+  },
+  {
+    id: 'W62',
+    name: 'Montaż rynien stalowych z rurą spustową',
+    unit: 'mb',
+    laborPrice: 75,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M127', quantityPerUnit: 1.05 },
+      { itemTemplateId: 'M131', quantityPerUnit: 1.5 },
+    ],
+    roomTypes: ['dach_skosny', 'dach_plaski']
+  },
+  {
+    id: 'W63',
+    name: 'Montaż podbitki PVC',
+    unit: 'm2',
+    laborPrice: 85,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M139', quantityPerUnit: 1.1 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W64',
+    name: 'Montaż podbitki drewnianej',
+    unit: 'm2',
+    laborPrice: 95,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M140', quantityPerUnit: 1.1 },
+      { itemTemplateId: 'M141', quantityPerUnit: 0.15 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W65',
+    name: 'Montaż ławy kominiarskiej',
+    unit: 'szt',
+    laborPrice: 280,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M136', quantityPerUnit: 1 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W66',
+    name: 'Montaż płotków przeciwśniegowych',
+    unit: 'mb',
+    laborPrice: 95,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M138', quantityPerUnit: 1.05 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W67',
+    name: 'Montaż kominków wentylacyjnych',
+    unit: 'szt',
+    laborPrice: 180,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M135', quantityPerUnit: 1 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W68',
+    name: 'Demontaż starego pokrycia dachowego',
+    unit: 'm2',
+    laborPrice: 30,
+    workCategory: 'dekarstwo',
+    materials: [],
+    roomTypes: ['dach_skosny', 'dach_plaski']
+  },
+  {
+    id: 'W69',
+    name: 'Kompletne pokrycie dachu - blachodachówka z membraną',
+    unit: 'm2',
+    laborPrice: 95,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M119', quantityPerUnit: 1.15 },
+      { itemTemplateId: 'M116', quantityPerUnit: 4 },
+      { itemTemplateId: 'M117', quantityPerUnit: 3 },
+      { itemTemplateId: 'M112', quantityPerUnit: 1.1 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
+  {
+    id: 'W70',
+    name: 'Kompletne pokrycie dachu - dachówka ceramiczna',
+    unit: 'm2',
+    laborPrice: 125,
+    workCategory: 'dekarstwo',
+    materials: [
+      { itemTemplateId: 'M119', quantityPerUnit: 1.15 },
+      { itemTemplateId: 'M116', quantityPerUnit: 4 },
+      { itemTemplateId: 'M117', quantityPerUnit: 3 },
+      { itemTemplateId: 'M110', quantityPerUnit: 1.05 },
+    ],
+    roomTypes: ['dach_skosny']
+  },
 ];
 
 // Default room renovation templates
@@ -1049,6 +1469,169 @@ export const DEFAULT_ROOM_RENOVATION_TEMPLATES: RoomRenovationTemplate[] = [
       { workTemplateId: 'W7', defaultQuantity: 15 },
       { workTemplateId: 'W27', defaultQuantity: 4 },
       { workTemplateId: 'W26', defaultQuantity: 6 },
+    ]
+  },
+  
+  // ========== DACH PŁASKI ==========
+  {
+    id: 'R30',
+    name: 'Remont dachu płaskiego - papa',
+    roomType: 'dach_plaski',
+    description: 'Wymiana pokrycia papowego na dachu płaskim',
+    works: [
+      { workTemplateId: 'W44', defaultQuantity: 100 },
+      { workTemplateId: 'W45', defaultQuantity: 40 },
+      { workTemplateId: 'W46', defaultQuantity: 2 },
+    ]
+  },
+  {
+    id: 'R31',
+    name: 'Remont dachu płaskiego - membrana PVC',
+    roomType: 'dach_plaski',
+    description: 'Nowoczesne pokrycie membraną PVC',
+    works: [
+      { workTemplateId: 'W68', defaultQuantity: 100 },
+      { workTemplateId: 'W41', defaultQuantity: 100 },
+      { workTemplateId: 'W45', defaultQuantity: 40 },
+      { workTemplateId: 'W46', defaultQuantity: 2 },
+    ]
+  },
+  {
+    id: 'R32',
+    name: 'Dach płaski - kompleksowo z ociepleniem',
+    roomType: 'dach_plaski',
+    description: 'Nowy dach z ociepleniem i pokryciem',
+    works: [
+      { workTemplateId: 'W68', defaultQuantity: 120 },
+      { workTemplateId: 'W43', defaultQuantity: 120 },
+      { workTemplateId: 'W40', defaultQuantity: 120 },
+      { workTemplateId: 'W45', defaultQuantity: 45 },
+      { workTemplateId: 'W46', defaultQuantity: 3 },
+      { workTemplateId: 'W61', defaultQuantity: 45 },
+    ]
+  },
+  {
+    id: 'R33',
+    name: 'Naprawa dachu płaskiego',
+    roomType: 'dach_plaski',
+    description: 'Lokalne naprawy i uszczelnienia',
+    works: [
+      { workTemplateId: 'W40', defaultQuantity: 30 },
+      { workTemplateId: 'W45', defaultQuantity: 10 },
+    ]
+  },
+  
+  // ========== DACH SKOŚNY ==========
+  {
+    id: 'R40',
+    name: 'Pokrycie dachu - blachodachówka',
+    roomType: 'dach_skosny',
+    description: 'Nowe pokrycie z blachodachówki z membraną',
+    works: [
+      { workTemplateId: 'W56', defaultQuantity: 150 },
+      { workTemplateId: 'W55', defaultQuantity: 150 },
+      { workTemplateId: 'W52', defaultQuantity: 150 },
+      { workTemplateId: 'W61', defaultQuantity: 35 },
+      { workTemplateId: 'W63', defaultQuantity: 15 },
+    ]
+  },
+  {
+    id: 'R41',
+    name: 'Pokrycie dachu - dachówka ceramiczna',
+    roomType: 'dach_skosny',
+    description: 'Tradycyjne pokrycie dachówką ceramiczną',
+    works: [
+      { workTemplateId: 'W56', defaultQuantity: 150 },
+      { workTemplateId: 'W55', defaultQuantity: 150 },
+      { workTemplateId: 'W50', defaultQuantity: 150 },
+      { workTemplateId: 'W61', defaultQuantity: 35 },
+      { workTemplateId: 'W63', defaultQuantity: 15 },
+      { workTemplateId: 'W65', defaultQuantity: 1 },
+    ]
+  },
+  {
+    id: 'R42',
+    name: 'Pokrycie dachu - dachówka betonowa',
+    roomType: 'dach_skosny',
+    description: 'Ekonomiczne pokrycie dachówką betonową',
+    works: [
+      { workTemplateId: 'W56', defaultQuantity: 150 },
+      { workTemplateId: 'W55', defaultQuantity: 150 },
+      { workTemplateId: 'W51', defaultQuantity: 150 },
+      { workTemplateId: 'W61', defaultQuantity: 35 },
+      { workTemplateId: 'W63', defaultQuantity: 15 },
+    ]
+  },
+  {
+    id: 'R43',
+    name: 'Pokrycie dachu - blacha na rąbek',
+    roomType: 'dach_skosny',
+    description: 'Nowoczesne pokrycie blachą na rąbek stojący',
+    works: [
+      { workTemplateId: 'W56', defaultQuantity: 150 },
+      { workTemplateId: 'W55', defaultQuantity: 150 },
+      { workTemplateId: 'W53', defaultQuantity: 150 },
+      { workTemplateId: 'W62', defaultQuantity: 35 },
+      { workTemplateId: 'W64', defaultQuantity: 15 },
+    ]
+  },
+  {
+    id: 'R44',
+    name: 'Wymiana pokrycia dachowego - kompleksowo',
+    roomType: 'dach_skosny',
+    description: 'Demontaż starego i montaż nowego pokrycia z blachodachówki',
+    works: [
+      { workTemplateId: 'W68', defaultQuantity: 150 },
+      { workTemplateId: 'W69', defaultQuantity: 150 },
+      { workTemplateId: 'W61', defaultQuantity: 35 },
+      { workTemplateId: 'W63', defaultQuantity: 15 },
+      { workTemplateId: 'W66', defaultQuantity: 12 },
+      { workTemplateId: 'W67', defaultQuantity: 3 },
+    ]
+  },
+  {
+    id: 'R45',
+    name: 'Dach z ociepleniem poddasza',
+    roomType: 'dach_skosny',
+    description: 'Kompletny dach z ociepleniem wełną mineralną',
+    works: [
+      { workTemplateId: 'W56', defaultQuantity: 140 },
+      { workTemplateId: 'W55', defaultQuantity: 140 },
+      { workTemplateId: 'W52', defaultQuantity: 140 },
+      { workTemplateId: 'W58', defaultQuantity: 120 },
+      { workTemplateId: 'W61', defaultQuantity: 30 },
+      { workTemplateId: 'W63', defaultQuantity: 12 },
+      { workTemplateId: 'W59', defaultQuantity: 4 },
+    ]
+  },
+  {
+    id: 'R46',
+    name: 'Montaż okien dachowych',
+    roomType: 'dach_skosny',
+    description: 'Wymiana lub montaż nowych okien dachowych',
+    works: [
+      { workTemplateId: 'W59', defaultQuantity: 3 },
+      { workTemplateId: 'W60', defaultQuantity: 2 },
+    ]
+  },
+  {
+    id: 'R47',
+    name: 'Remont rynien i obróbek',
+    roomType: 'dach_skosny',
+    description: 'Wymiana systemu rynnowego',
+    works: [
+      { workTemplateId: 'W61', defaultQuantity: 40 },
+      { workTemplateId: 'W63', defaultQuantity: 12 },
+    ]
+  },
+  {
+    id: 'R48',
+    name: 'Mały dach - garaż/wiata',
+    roomType: 'dach_skosny',
+    description: 'Pokrycie małego dachu blachodachówką',
+    works: [
+      { workTemplateId: 'W69', defaultQuantity: 35 },
+      { workTemplateId: 'W61', defaultQuantity: 15 },
     ]
   },
 ];

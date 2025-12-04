@@ -229,6 +229,8 @@ const resources = {
         sypialnia: 'Sypialnia',
         korytarz: 'Korytarz/Przedpokój',
         balkon: 'Balkon/Taras',
+        dach_plaski: 'Dach płaski',
+        dach_skosny: 'Dach skośny',
         inne: 'Inne'
       },
       
@@ -468,6 +470,8 @@ const resources = {
         sypialnia: 'Bedroom',
         korytarz: 'Hallway',
         balkon: 'Balcony/Terrace',
+        dach_plaski: 'Flat roof',
+        dach_skosny: 'Sloped roof',
         inne: 'Other'
       },
       
@@ -667,6 +671,8 @@ const resources = {
         sypialnia: 'Schlafzimmer',
         korytarz: 'Flur',
         balkon: 'Balkon/Terrasse',
+        dach_plaski: 'Flachdach',
+        dach_skosny: 'Schrägdach',
         inne: 'Andere'
       },
       
@@ -866,6 +872,8 @@ const resources = {
         sypialnia: 'Chambre',
         korytarz: 'Couloir',
         balkon: 'Balcon/Terrasse',
+        dach_plaski: 'Toit plat',
+        dach_skosny: 'Toit en pente',
         inne: 'Autre'
       },
       

@@ -1530,6 +1530,8 @@ const EstimateEditor: React.FC<{
                       {key === 'sypialnia' && '🛏️'}
                       {key === 'korytarz' && '🚪'}
                       {key === 'balkon' && '🌿'}
+                      {key === 'dach_plaski' && '🏢'}
+                      {key === 'dach_skosny' && '🏠'}
                       {key === 'inne' && '📦'}
                     </span>
                     <span className="room-type-label">{label}</span>
