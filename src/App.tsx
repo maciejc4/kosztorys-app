@@ -974,6 +974,14 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
                     </td>
                   </tr>
                 ))}
+                {/* Add new row */}
+                <tr className="table-add-row">
+                  <td colSpan={6}>
+                    <button className="btn btn-ghost btn-sm btn-block" onClick={() => setShowModal(true)}>
+                      + {t('common.add')}
+                    </button>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -1178,6 +1186,14 @@ const WorkTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
                     </td>
                   </tr>
                 ))}
+                {/* Add new row */}
+                <tr className="table-add-row">
+                  <td colSpan={5}>
+                    <button className="btn btn-ghost btn-sm btn-block" onClick={() => setShowModal(true)}>
+                      + {t('common.add')}
+                    </button>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -2345,7 +2361,7 @@ const EstimatesView: React.FC<{ user: UserData; onUpdate: () => void; onEdit: (e
 };
 
 // ============ Settings View ============
-const SettingsView: React.FC<{ user: UserData; onUpdate: () => void }> = memo(({ user, onUpdate }) => {
+const SettingsView: React.FC<{ user: UserData; onUpdate: () => void; onLogout: () => void }> = memo(({ user, onUpdate, onLogout }) => {
   const { t, i18n } = useTranslation();
   const config = getApiConfig();
   const remaining = mockApi.getRemainingTime(user);
@@ -2469,6 +2485,15 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void }> = memo(({
         <div className="card-body text-center text-xs text-gray">
           {t('appName')} v2.3<br/>{t('settings.dataLocal')}
           {config.retentionHours > 0 && <><br/>{t('settings.retention')}: {config.retentionHours}h</>}
+        </div>
+      </div>
+      
+      {/* Logout */}
+      <div className="card">
+        <div className="card-body">
+          <button className="btn btn-secondary btn-block" onClick={onLogout}>
+            🚪 {t('settings.logout')}
+          </button>
         </div>
       </div>
     </div>
@@ -2717,6 +2742,11 @@ const App: React.FC = () => {
     });
   };
 
+  const handleLogout = () => {
+    setUser(null);
+    window.location.hash = '';
+  };
+
   const handleUpdate = () => {
     if (user) {
       const updated = mockApi.getUser(user.uniqueId);
@@ -2863,7 +2893,7 @@ const App: React.FC = () => {
         <main className="main" key={refreshKey}>
           {tab === 'estimates' && <EstimatesView user={user} onUpdate={handleUpdate} onEdit={handleEditEstimate} />}
           {tab === 'templates' && <TemplatesView user={user} onUpdate={handleUpdate} />}
-          {tab === 'settings' && <SettingsView user={user} onUpdate={handleUpdate} />}
+          {tab === 'settings' && <SettingsView user={user} onUpdate={handleUpdate} onLogout={handleLogout} />}
         </main>
       </div>
     </div>

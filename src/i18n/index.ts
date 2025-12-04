@@ -200,7 +200,8 @@ const resources = {
         companyInfoDesc: 'Te dane pojawią się w stopce kosztorysów PDF',
         displayName: 'Nazwa wyświetlana',
         companyNameHint: 'Nazwa firmy widoczna w nagłówku i stopce kosztorysu PDF',
-        phoneNumberHint: 'Numer kontaktowy wyświetlany w stopce kosztorysu - pozwala klientowi łatwo się z Tobą skontaktować'
+        phoneNumberHint: 'Numer kontaktowy wyświetlany w stopce kosztorysu - pozwala klientowi łatwo się z Tobą skontaktować',
+        logout: 'Wyloguj'
       },
       
       // Validation
@@ -458,7 +459,8 @@ const resources = {
         companyInfoDesc: 'This information will appear in PDF estimate footers',
         displayName: 'Display name',
         companyNameHint: 'Company name visible in PDF estimate header and footer',
-        phoneNumberHint: 'Contact number displayed in estimate footer - allows clients to easily contact you'
+        phoneNumberHint: 'Contact number displayed in estimate footer - allows clients to easily contact you',
+        logout: 'Logout'
       },
       
       validation: {
