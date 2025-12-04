@@ -4,7 +4,7 @@ import { mockApi, getApiConfig } from './api';
 import { 
   UserData, ItemTemplate, WorkTemplate, RoomRenovationTemplate,
   Estimate, EstimateItem, EstimateRoom, WorkMaterial,
-  UnitType, RoomType, UNIT_LABELS, ROOM_LABELS, DEFAULT_ROOM_NAMES
+  UnitType, RoomType, WorkCategory, UNIT_LABELS, ROOM_LABELS, DEFAULT_ROOM_NAMES, WORK_CATEGORY_LABELS
 } from './types';
 import { generatePDF, PDFDetailLevel } from './pdfGenerator';
 import { v4 as uuidv4 } from 'uuid';
@@ -207,10 +207,11 @@ const ItemTemplateModal: React.FC<{
   const [unit, setUnit] = useState<UnitType>(template?.unit || 'm2');
   const [price, setPrice] = useState(template?.pricePerUnit?.toString() || '');
   const [category, setCategory] = useState<'labor' | 'material'>(template?.category || 'labor');
+  const [workCategory, setWorkCategory] = useState<WorkCategory | undefined>(template?.workCategory);
 
   const handleSubmit = () => {
     if (!name.trim() || !price) return;
-    onSave({ name: name.trim(), unit, pricePerUnit: parseFloat(price), category });
+    onSave({ name: name.trim(), unit, pricePerUnit: parseFloat(price), category, workCategory });
   };
 
   return (
@@ -240,6 +241,13 @@ const ItemTemplateModal: React.FC<{
                 {Object.entries(UNIT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">{t('templates.workCategory')}</label>
+            <select className="form-select" value={workCategory || ''} onChange={(e) => setWorkCategory(e.target.value as WorkCategory || undefined)}>
+              <option value="">{t('common.none')}</option>
+              {Object.entries(WORK_CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
           </div>
           <div className="form-group">
             <label className="form-label">{t('common.price')} ({t('common.currency')})</label>
@@ -665,13 +673,26 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<ItemTemplate | null>(null);
   const [filter, setFilter] = useState<'all' | 'labor' | 'material'>('all');
+  const [workCategoryFilter, setWorkCategoryFilter] = useState<WorkCategory | 'all'>('all');
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => user.itemTemplates.filter(item => {
     const matchesFilter = filter === 'all' || item.category === filter;
+    const matchesWorkCategory = workCategoryFilter === 'all' || item.workCategory === workCategoryFilter;
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
-    return matchesFilter && matchesSearch;
-  }), [user.itemTemplates, filter, search]);
+    return matchesFilter && matchesWorkCategory && matchesSearch;
+  }), [user.itemTemplates, filter, workCategoryFilter, search]);
+
+  // Group by work category
+  const groupedItems = useMemo(() => {
+    const groups: Record<string, ItemTemplate[]> = {};
+    filtered.forEach(item => {
+      const cat = item.workCategory || 'inne';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(item);
+    });
+    return groups;
+  }, [filtered]);
 
   const handleSave = useCallback((data: Omit<ItemTemplate, 'id'>) => {
     if (editing) {
@@ -700,7 +721,7 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
         </div>
         <div className="card-body">
           <SearchInput value={search} onChange={setSearch} />
-          <div className="filter-pills">
+          <div className="filter-pills mb-1">
             <button className={`filter-pill ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
               {t('common.all')} ({user.itemTemplates.length})
             </button>
@@ -711,27 +732,47 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
               {t('common.materials')}
             </button>
           </div>
+          <div className="filter-pills" style={{ fontSize: '0.75rem' }}>
+            <button className={`filter-pill ${workCategoryFilter === 'all' ? 'active' : ''}`} onClick={() => setWorkCategoryFilter('all')}>
+              {t('common.allCategories')}
+            </button>
+            {Object.entries(WORK_CATEGORY_LABELS).map(([k, v]) => (
+              <button key={k} className={`filter-pill ${workCategoryFilter === k ? 'active' : ''}`} onClick={() => setWorkCategoryFilter(k as WorkCategory)}>
+                {v}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-      <div className="card">
-        {filtered.length === 0 ? (
+      {filtered.length === 0 ? (
+        <div className="card">
           <div className="empty-state"><div className="empty-state-icon">📦</div><p>{t('common.noItems')}</p></div>
-        ) : filtered.map(item => (
-          <div key={item.id} className="list-item">
-            <div className="list-item-content">
-              <div className="list-item-title">{item.name}</div>
-              <div className="list-item-subtitle">
-                <span className={`badge badge-${item.category}`}>{item.category === 'labor' ? t('common.labor') : t('common.material')}</span>
-                {' '}{item.pricePerUnit.toFixed(2)} {t('common.currency')}/{UNIT_LABELS[item.unit]}
+        </div>
+      ) : (
+        Object.entries(groupedItems).map(([category, items]) => (
+          <div key={category} className="card">
+            <div className="card-header" style={{ background: 'var(--gray-50)' }}>
+              <h3 className="card-title" style={{ fontSize: '0.9rem' }}>{WORK_CATEGORY_LABELS[category as WorkCategory] || '📦 Inne'}</h3>
+              <span className="text-xs text-gray">{items.length} {t('templates.items').toLowerCase()}</span>
+            </div>
+            {items.map(item => (
+              <div key={item.id} className="list-item">
+                <div className="list-item-content">
+                  <div className="list-item-title">{item.name}</div>
+                  <div className="list-item-subtitle">
+                    <span className={`badge badge-${item.category}`}>{item.category === 'labor' ? t('common.labor') : t('common.material')}</span>
+                    {' '}{item.pricePerUnit.toFixed(2)} {t('common.currency')}/{UNIT_LABELS[item.unit]}
+                  </div>
+                </div>
+                <div className="list-item-actions">
+                  <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(item); setShowModal(true); }}>✏️</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(item.id)}>🗑️</button>
+                </div>
               </div>
-            </div>
-            <div className="list-item-actions">
-              <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(item); setShowModal(true); }}>✏️</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(item.id)}>🗑️</button>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        ))
+      )}
       {showModal && <ItemTemplateModal template={editing} onSave={handleSave} onClose={() => { setShowModal(false); setEditing(null); }} />}
     </div>
   );

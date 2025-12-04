@@ -38,6 +38,8 @@ const resources = {
         noItems: 'Brak pozycji',
         confirmDelete: 'Czy na pewno chcesz usunąć?',
         createNew: '+ Utwórz nowy',
+        none: 'Brak',
+        allCategories: 'Wszystkie kategorie',
         quickAdd: 'Szybkie dodawanie',
         currency: 'zł',
         next: 'Dalej',
@@ -102,7 +104,8 @@ const resources = {
         createItemFirst: 'Najpierw utwórz pozycję',
         createWorkFirst: 'Najpierw utwórz pracę',
         orCreateNew: 'lub utwórz nową',
-        itemAlreadyAdded: 'Ta pozycja jest już dodana'
+        itemAlreadyAdded: 'Ta pozycja jest już dodana',
+        workCategory: 'Kategoria pracy'
       },
       
       // Estimates
@@ -263,6 +266,8 @@ const resources = {
         noItems: 'No items',
         confirmDelete: 'Are you sure you want to delete?',
         createNew: '+ Create new',
+        none: 'None',
+        allCategories: 'All categories',
         quickAdd: 'Quick add',
         currency: '$',
         next: 'Next',
@@ -325,7 +330,8 @@ const resources = {
         createItemFirst: 'Create an item first',
         createWorkFirst: 'Create a work first',
         orCreateNew: 'or create new',
-        itemAlreadyAdded: 'This item is already added'
+        itemAlreadyAdded: 'This item is already added',
+        workCategory: 'Work category'
       },
       
       estimates: {
@@ -480,6 +486,8 @@ const resources = {
         noItems: 'Keine Positionen',
         confirmDelete: 'Sind Sie sicher, dass Sie löschen möchten?',
         createNew: '+ Neu erstellen',
+        none: 'Keine',
+        allCategories: 'Alle Kategorien',
         quickAdd: 'Schnell hinzufügen',
         currency: '€'
       },
@@ -536,7 +544,8 @@ const resources = {
         createItemFirst: 'Erstellen Sie zuerst eine Position',
         createWorkFirst: 'Erstellen Sie zuerst eine Arbeit',
         orCreateNew: 'oder neu erstellen',
-        itemAlreadyAdded: 'Diese Position wurde bereits hinzugefügt'
+        itemAlreadyAdded: 'Diese Position wurde bereits hinzugefügt',
+        workCategory: 'Arbeitskategorie'
       },
       
       estimates: {
@@ -668,6 +677,8 @@ const resources = {
         noItems: 'Aucun élément',
         confirmDelete: 'Êtes-vous sûr de vouloir supprimer?',
         createNew: '+ Créer nouveau',
+        none: 'Aucun',
+        allCategories: 'Toutes les catégories',
         quickAdd: 'Ajout rapide',
         currency: '€'
       },
@@ -724,7 +735,8 @@ const resources = {
         createItemFirst: 'Créez d\'abord un élément',
         createWorkFirst: 'Créez d\'abord un travail',
         orCreateNew: 'ou créer nouveau',
-        itemAlreadyAdded: 'Cet élément a déjà été ajouté'
+        itemAlreadyAdded: 'Cet élément a déjà été ajouté',
+        workCategory: 'Catégorie de travail'
       },
       
       estimates: {

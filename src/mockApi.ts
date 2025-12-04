@@ -1,4 +1,4 @@
-import { UserData, Estimate, ItemTemplate, WorkTemplate, DEFAULT_ITEM_TEMPLATES, DEFAULT_WORK_TEMPLATES, DEFAULT_ROOM_RENOVATION_TEMPLATES } from './types';
+import { UserData, Estimate, ItemTemplate, WorkTemplate, DEFAULT_ITEM_TEMPLATES, DEFAULT_WORK_TEMPLATES, DEFAULT_ROOM_RENOVATION_TEMPLATES, EXAMPLE_ESTIMATE } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEY = 'kosztorys_users';
@@ -11,19 +11,41 @@ export const mockApi = {
   },
 
   // Create new user
-  createUser: (username: string): UserData => {
+  createUser: (username: string, useDefaultData: boolean = true): UserData => {
     const users = mockApi.getAllUsers();
     const uniqueId = mockApi.generateUserId();
+    
+    // Prepare example estimate with new IDs if using default data
+    const estimates: Estimate[] = [];
+    if (useDefaultData) {
+      // Clone the example estimate with new unique IDs
+      const exampleEstimate: Estimate = {
+        ...EXAMPLE_ESTIMATE,
+        id: uuidv4(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        rooms: EXAMPLE_ESTIMATE.rooms.map(room => ({
+          ...room,
+          id: uuidv4(),
+          items: room.items.map(item => ({
+            ...item,
+            id: uuidv4(),
+            workId: item.workId ? uuidv4() : undefined
+          }))
+        }))
+      };
+      estimates.push(exampleEstimate);
+    }
     
     const newUser: UserData = {
       username,
       uniqueId,
       companyName: '',
       phoneNumber: '',
-      itemTemplates: [...DEFAULT_ITEM_TEMPLATES],
-      workTemplates: [...DEFAULT_WORK_TEMPLATES],
-      roomRenovationTemplates: [...DEFAULT_ROOM_RENOVATION_TEMPLATES],
-      estimates: [],
+      itemTemplates: useDefaultData ? [...DEFAULT_ITEM_TEMPLATES] : [],
+      workTemplates: useDefaultData ? [...DEFAULT_WORK_TEMPLATES] : [],
+      roomRenovationTemplates: useDefaultData ? [...DEFAULT_ROOM_RENOVATION_TEMPLATES] : [],
+      estimates,
       createdAt: new Date().toISOString()
     };
 
