@@ -210,6 +210,20 @@ const resources = {
         fillRequiredFields: 'Wypełnij wymagane pola, aby kontynuować'
       },
       
+      // Table view
+      tableView: {
+        toggle: 'Widok tabeli',
+        listView: 'Lista',
+        tableViewLabel: 'Tabela',
+        bulkEdit: 'Edycja masowa',
+        saveAll: 'Zapisz wszystko',
+        discardChanges: 'Odrzuć zmiany',
+        changesCount: 'Zmieniono: {{count}}',
+        selectAll: 'Zaznacz wszystkie',
+        deleteSelected: 'Usuń zaznaczone',
+        selectedCount: 'Zaznaczono: {{count}}'
+      },
+      
       // Units
       units: {
         mb: 'mb',
@@ -451,6 +465,19 @@ const resources = {
         requiredField: 'This field is required',
         requiredFieldsInfo: 'Fields marked with * are required',
         fillRequiredFields: 'Fill in required fields to continue'
+      },
+      
+      tableView: {
+        toggle: 'Table view',
+        listView: 'List',
+        tableViewLabel: 'Table',
+        bulkEdit: 'Bulk edit',
+        saveAll: 'Save all',
+        discardChanges: 'Discard changes',
+        changesCount: 'Changed: {{count}}',
+        selectAll: 'Select all',
+        deleteSelected: 'Delete selected',
+        selectedCount: 'Selected: {{count}}'
       },
       
       units: {

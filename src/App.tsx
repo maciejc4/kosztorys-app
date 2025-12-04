@@ -177,6 +177,32 @@ const SearchInput: React.FC<{ value: string; onChange: (v: string) => void; plac
   );
 });
 
+// ============ View Mode Toggle ============
+const ViewModeToggle: React.FC<{ 
+  mode: 'list' | 'table'; 
+  onChange: (mode: 'list' | 'table') => void;
+}> = memo(({ mode, onChange }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="view-mode-toggle">
+      <button 
+        className={`view-mode-btn ${mode === 'list' ? 'active' : ''}`}
+        onClick={() => onChange('list')}
+        title={t('tableView.listView')}
+      >
+        <span>☰</span>
+      </button>
+      <button 
+        className={`view-mode-btn ${mode === 'table' ? 'active' : ''}`}
+        onClick={() => onChange('table')}
+        title={t('tableView.tableViewLabel')}
+      >
+        <span>▦</span>
+      </button>
+    </div>
+  );
+});
+
 // ============ Google AdSense Banner ============
 // Configure your ad unit ID in the adSlot prop
 interface AdBannerProps {
@@ -725,6 +751,9 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
   const [filter, setFilter] = useState<'all' | 'labor' | 'material'>('all');
   const [workCategoryFilter, setWorkCategoryFilter] = useState<WorkCategory | 'all'>('all');
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
+  const [tableEdits, setTableEdits] = useState<Record<string, Partial<ItemTemplate>>>({});
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => user.itemTemplates.filter(item => {
     const matchesFilter = filter === 'all' || item.category === filter;
@@ -762,12 +791,72 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
     }
   }, [user.uniqueId, onUpdate, t]);
 
+  // Table edit handlers
+  const handleTableEdit = (id: string, field: keyof ItemTemplate, value: any) => {
+    setTableEdits(prev => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: value }
+    }));
+  };
+
+  const handleSaveAllEdits = () => {
+    Object.entries(tableEdits).forEach(([id, changes]) => {
+      const item = user.itemTemplates.find(i => i.id === id);
+      if (item) {
+        mockApi.updateItemTemplate(user.uniqueId, id, { ...item, ...changes });
+      }
+    });
+    setTableEdits({});
+    onUpdate();
+  };
+
+  const handleDiscardEdits = () => {
+    setTableEdits({});
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(i => i.id)));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    if (confirm(t('common.confirmDelete'))) {
+      selectedIds.forEach(id => {
+        mockApi.deleteItemTemplate(user.uniqueId, id);
+      });
+      setSelectedIds(new Set());
+      onUpdate();
+    }
+  };
+
+  const getEditedValue = (item: ItemTemplate, field: keyof ItemTemplate) => {
+    return tableEdits[item.id]?.[field] ?? item[field];
+  };
+
+  const hasChanges = Object.keys(tableEdits).length > 0;
+
   return (
     <div>
       <div className="card">
         <div className="card-header">
           <h2 className="card-title">📦 {t('templates.itemTemplates')}</h2>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowModal(true)}>+ {t('common.add')}</button>
+          <div className="flex items-center gap-1">
+            <ViewModeToggle mode={viewMode} onChange={setViewMode} />
+            <button className="btn btn-primary btn-sm" onClick={() => setShowModal(true)}>+ {t('common.add')}</button>
+          </div>
         </div>
         <div className="card-body">
           <SearchInput value={search} onChange={setSearch} />
@@ -794,34 +883,136 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
           </div>
         </div>
       </div>
-      {filtered.length === 0 ? (
+
+      {/* Table View Mode */}
+      {viewMode === 'table' && filtered.length > 0 && (
         <div className="card">
-          <div className="empty-state"><div className="empty-state-icon">📦</div><p>{t('common.noItems')}</p></div>
-        </div>
-      ) : (
-        Object.entries(groupedItems).map(([category, items]) => (
-          <div key={category} className="card">
-            <div className="card-header" style={{ background: 'var(--gray-50)' }}>
-              <h3 className="card-title" style={{ fontSize: '0.9rem' }}>{WORK_CATEGORY_LABELS[category as WorkCategory] || '📦 Inne'}</h3>
-              <span className="text-xs text-gray">{items.length} {t('templates.items').toLowerCase()}</span>
+          {/* Table toolbar */}
+          <div className="table-toolbar">
+            <div className="flex items-center gap-1">
+              <label className="form-checkbox" style={{ marginRight: '0.5rem' }}>
+                <input type="checkbox" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleSelectAll} />
+              </label>
+              {selectedIds.size > 0 && (
+                <>
+                  <span className="text-sm text-gray">{t('tableView.selectedCount', { count: selectedIds.size })}</span>
+                  <button className="btn btn-danger btn-sm" onClick={handleDeleteSelected}>🗑️ {t('tableView.deleteSelected')}</button>
+                </>
+              )}
             </div>
-            {items.map(item => (
-              <div key={item.id} className="list-item">
-                <div className="list-item-content">
-                  <div className="list-item-title">{item.name}</div>
-                  <div className="list-item-subtitle">
-                    <span className={`badge badge-${item.category}`}>{item.category === 'labor' ? t('common.labor') : t('common.material')}</span>
-                    {' '}{item.pricePerUnit.toFixed(2)} {t('common.currency')}/{UNIT_LABELS[item.unit]}
-                  </div>
-                </div>
-                <div className="list-item-actions">
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(item); setShowModal(true); }}>✏️</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(item.id)}>🗑️</button>
-                </div>
+            {hasChanges && (
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-primary">{t('tableView.changesCount', { count: Object.keys(tableEdits).length })}</span>
+                <button className="btn btn-secondary btn-sm" onClick={handleDiscardEdits}>{t('tableView.discardChanges')}</button>
+                <button className="btn btn-success btn-sm" onClick={handleSaveAllEdits}>{t('tableView.saveAll')}</button>
               </div>
-            ))}
+            )}
           </div>
-        ))
+          
+          {/* Table */}
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '40px' }}></th>
+                  <th>{t('common.name')}</th>
+                  <th style={{ width: '100px' }}>{t('common.category')}</th>
+                  <th style={{ width: '100px' }}>{t('common.unit')}</th>
+                  <th style={{ width: '120px' }}>{t('common.price')}</th>
+                  <th style={{ width: '60px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(item => (
+                  <tr key={item.id} className={tableEdits[item.id] ? 'row-edited' : ''}>
+                    <td>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.has(item.id)} 
+                        onChange={() => toggleSelect(item.id)} 
+                      />
+                    </td>
+                    <td>
+                      <input 
+                        type="text" 
+                        className="table-input" 
+                        value={getEditedValue(item, 'name') as string}
+                        onChange={(e) => handleTableEdit(item.id, 'name', e.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <select 
+                        className="table-input"
+                        value={getEditedValue(item, 'category') as string}
+                        onChange={(e) => handleTableEdit(item.id, 'category', e.target.value)}
+                      >
+                        <option value="labor">{t('common.labor')}</option>
+                        <option value="material">{t('common.material')}</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select 
+                        className="table-input"
+                        value={getEditedValue(item, 'unit') as string}
+                        onChange={(e) => handleTableEdit(item.id, 'unit', e.target.value as UnitType)}
+                      >
+                        {Object.entries(UNIT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      </select>
+                    </td>
+                    <td>
+                      <input 
+                        type="number" 
+                        className="table-input" 
+                        value={getEditedValue(item, 'pricePerUnit') as number}
+                        onChange={(e) => handleTableEdit(item.id, 'pricePerUnit', parseFloat(e.target.value) || 0)}
+                        step="0.01"
+                        min="0"
+                      />
+                    </td>
+                    <td>
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(item.id)}>🗑️</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* List View Mode */}
+      {viewMode === 'list' && (
+        <>
+          {filtered.length === 0 ? (
+            <div className="card">
+              <div className="empty-state"><div className="empty-state-icon">📦</div><p>{t('common.noItems')}</p></div>
+            </div>
+          ) : (
+            Object.entries(groupedItems).map(([category, items]) => (
+              <div key={category} className="card">
+                <div className="card-header" style={{ background: 'var(--gray-50)' }}>
+                  <h3 className="card-title" style={{ fontSize: '0.9rem' }}>{WORK_CATEGORY_LABELS[category as WorkCategory] || '📦 Inne'}</h3>
+                  <span className="text-xs text-gray">{items.length} {t('templates.items').toLowerCase()}</span>
+                </div>
+                {items.map(item => (
+                  <div key={item.id} className="list-item">
+                    <div className="list-item-content">
+                      <div className="list-item-title">{item.name}</div>
+                      <div className="list-item-subtitle">
+                        <span className={`badge badge-${item.category}`}>{item.category === 'labor' ? t('common.labor') : t('common.material')}</span>
+                        {' '}{item.pricePerUnit.toFixed(2)} {t('common.currency')}/{UNIT_LABELS[item.unit]}
+                      </div>
+                    </div>
+                    <div className="list-item-actions">
+                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(item); setShowModal(true); }}>✏️</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(item.id)}>🗑️</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))
+          )}
+        </>
       )}
       {showModal && <ItemTemplateModal template={editing} onSave={handleSave} onClose={() => { setShowModal(false); setEditing(null); }} />}
     </div>
@@ -835,6 +1026,8 @@ const WorkTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
   const [editing, setEditing] = useState<WorkTemplate | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<RoomType | 'all'>('all');
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
+  const [tableEdits, setTableEdits] = useState<Record<string, Partial<WorkTemplate>>>({});
 
   const filtered = useMemo(() => user.workTemplates.filter(work => {
     const matchesRoom = selectedRoom === 'all' || work.roomTypes.includes(selectedRoom as RoomType);
@@ -874,12 +1067,44 @@ const WorkTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
     }
   }, [user.uniqueId, onUpdate, t]);
 
+  // Table edit handlers
+  const handleTableEdit = (id: string, field: keyof WorkTemplate, value: any) => {
+    setTableEdits(prev => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: value }
+    }));
+  };
+
+  const handleSaveAllEdits = () => {
+    Object.entries(tableEdits).forEach(([id, changes]) => {
+      const work = user.workTemplates.find(w => w.id === id);
+      if (work) {
+        mockApi.updateWorkTemplate(user.uniqueId, id, { ...work, ...changes });
+      }
+    });
+    setTableEdits({});
+    onUpdate();
+  };
+
+  const handleDiscardEdits = () => {
+    setTableEdits({});
+  };
+
+  const getEditedValue = (work: WorkTemplate, field: keyof WorkTemplate) => {
+    return tableEdits[work.id]?.[field] ?? work[field];
+  };
+
+  const hasChanges = Object.keys(tableEdits).length > 0;
+
   return (
     <div>
       <div className="card">
         <div className="card-header">
           <h2 className="card-title">🔧 {t('templates.workTemplates')}</h2>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowModal(true)}>+ {t('common.add')}</button>
+          <div className="flex items-center gap-1">
+            <ViewModeToggle mode={viewMode} onChange={setViewMode} />
+            <button className="btn btn-primary btn-sm" onClick={() => setShowModal(true)}>+ {t('common.add')}</button>
+          </div>
         </div>
         <div className="card-body">
           <SearchInput value={search} onChange={setSearch} />
@@ -891,24 +1116,95 @@ const WorkTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
           </div>
         </div>
       </div>
-      <div className="card">
-        {filtered.length === 0 ? (
-          <div className="empty-state"><div className="empty-state-icon">🔧</div><p>{t('common.noItems')}</p></div>
-        ) : filtered.map(w => (
-          <div key={w.id} className="list-item">
-            <div className="list-item-content">
-              <div className="list-item-title">{w.name}</div>
-              <div className="list-item-subtitle">{t('common.labor')}: {w.laborPrice.toFixed(2)} {t('common.currency')}/{UNIT_LABELS[w.unit]}</div>
-              <div className="list-item-subtitle text-xs text-gray">{t('common.materials')}: {getMaterialsInfo(w)}</div>
-              <div className="list-item-subtitle"><strong className="text-primary">{t('common.total')}: {calcTotal(w).toFixed(2)} {t('common.currency')}/{UNIT_LABELS[w.unit]}</strong></div>
+
+      {/* Table View Mode */}
+      {viewMode === 'table' && filtered.length > 0 && (
+        <div className="card">
+          {hasChanges && (
+            <div className="table-toolbar">
+              <span className="text-sm text-primary">{t('tableView.changesCount', { count: Object.keys(tableEdits).length })}</span>
+              <div className="flex items-center gap-1">
+                <button className="btn btn-secondary btn-sm" onClick={handleDiscardEdits}>{t('tableView.discardChanges')}</button>
+                <button className="btn btn-success btn-sm" onClick={handleSaveAllEdits}>{t('tableView.saveAll')}</button>
+              </div>
             </div>
-            <div className="list-item-actions">
-              <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(w); setShowModal(true); }}>✏️</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(w.id)}>🗑️</button>
-            </div>
+          )}
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>{t('common.name')}</th>
+                  <th style={{ width: '100px' }}>{t('common.unit')}</th>
+                  <th style={{ width: '120px' }}>{t('common.labor')}</th>
+                  <th style={{ width: '120px' }}>{t('common.total')}</th>
+                  <th style={{ width: '60px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(work => (
+                  <tr key={work.id} className={tableEdits[work.id] ? 'row-edited' : ''}>
+                    <td>
+                      <input 
+                        type="text" 
+                        className="table-input" 
+                        value={getEditedValue(work, 'name') as string}
+                        onChange={(e) => handleTableEdit(work.id, 'name', e.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <select 
+                        className="table-input"
+                        value={getEditedValue(work, 'unit') as string}
+                        onChange={(e) => handleTableEdit(work.id, 'unit', e.target.value as UnitType)}
+                      >
+                        {Object.entries(UNIT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                      </select>
+                    </td>
+                    <td>
+                      <input 
+                        type="number" 
+                        className="table-input" 
+                        value={getEditedValue(work, 'laborPrice') as number}
+                        onChange={(e) => handleTableEdit(work.id, 'laborPrice', parseFloat(e.target.value) || 0)}
+                        step="0.01"
+                        min="0"
+                      />
+                    </td>
+                    <td className="text-primary font-medium">
+                      {calcTotal({ ...work, ...tableEdits[work.id] } as WorkTemplate).toFixed(2)} {t('common.currency')}
+                    </td>
+                    <td>
+                      <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(work); setShowModal(true); }}>✏️</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {/* List View Mode */}
+      {viewMode === 'list' && (
+        <div className="card">
+          {filtered.length === 0 ? (
+            <div className="empty-state"><div className="empty-state-icon">🔧</div><p>{t('common.noItems')}</p></div>
+          ) : filtered.map(w => (
+            <div key={w.id} className="list-item">
+              <div className="list-item-content">
+                <div className="list-item-title">{w.name}</div>
+                <div className="list-item-subtitle">{t('common.labor')}: {w.laborPrice.toFixed(2)} {t('common.currency')}/{UNIT_LABELS[w.unit]}</div>
+                <div className="list-item-subtitle text-xs text-gray">{t('common.materials')}: {getMaterialsInfo(w)}</div>
+                <div className="list-item-subtitle"><strong className="text-primary">{t('common.total')}: {calcTotal(w).toFixed(2)} {t('common.currency')}/{UNIT_LABELS[w.unit]}</strong></div>
+              </div>
+              <div className="list-item-actions">
+                <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(w); setShowModal(true); }}>✏️</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(w.id)}>🗑️</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {showModal && <WorkTemplateModal user={user} template={editing} onSave={handleSave} onClose={() => { setShowModal(false); setEditing(null); }} onUserUpdate={onUpdate} />}
     </div>
   );
@@ -1265,6 +1561,9 @@ const EstimateEditor: React.FC<{
   // Work modal state
   const [showWorkModal, setShowWorkModal] = useState(false);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  
+  // Table view mode for Step 3
+  const [worksViewMode, setWorksViewMode] = useState<'list' | 'table'>('list');
 
   // Update room name when type changes
   const handleRoomTypeChange = (type: RoomType) => {
@@ -1591,12 +1890,98 @@ const EstimateEditor: React.FC<{
       {/* Step 3: Add Works to Rooms */}
       {step === 3 && (
         <div className="wizard-step-content">
-          <div className="wizard-step-header">
-            <h2>🔧 {t('estimates.wizardStep3Title')}</h2>
-            <p className="text-gray">{t('estimates.wizardStep3Desc')}</p>
+          <div className="wizard-step-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <h2>🔧 {t('estimates.wizardStep3Title')}</h2>
+              <p className="text-gray">{t('estimates.wizardStep3Desc')}</p>
+            </div>
+            <ViewModeToggle mode={worksViewMode} onChange={setWorksViewMode} />
           </div>
           
-          {rooms.map(room => {
+          {/* Table View for all works */}
+          {worksViewMode === 'table' && rooms.some(r => r.items.length > 0) && (
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">📋 {t('tableView.bulkEdit')}</h3>
+              </div>
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>{t('estimates.rooms')}</th>
+                      <th>{t('templates.works')}</th>
+                      <th style={{ width: '100px' }}>{t('common.quantity')}</th>
+                      <th style={{ width: '100px' }}>{t('common.unit')}</th>
+                      <th style={{ width: '120px' }}>{t('common.price')}</th>
+                      <th style={{ width: '120px' }}>{t('common.total')}</th>
+                      <th style={{ width: '50px' }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rooms.flatMap(room => {
+                      const workGroups = new Map<string, EstimateItem[]>();
+                      room.items.forEach(item => {
+                        if (item.workId) {
+                          const existing = workGroups.get(item.workId) || [];
+                          existing.push(item);
+                          workGroups.set(item.workId, existing);
+                        }
+                      });
+                      
+                      return Array.from(workGroups.entries()).map(([workId, items]) => {
+                        const laborItem = items.find(i => i.category === 'labor');
+                        const workTotal = items.reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
+                        
+                        return laborItem ? (
+                          <tr key={workId}>
+                            <td className="text-gray">{room.name}</td>
+                            <td className="font-medium">{laborItem.workName}</td>
+                            <td>
+                              <input 
+                                type="number" 
+                                className="table-input"
+                                value={laborItem.quantity}
+                                onChange={(e) => {
+                                  const newQty = parseFloat(e.target.value) || 0;
+                                  const oldQty = laborItem.quantity;
+                                  const ratio = oldQty > 0 ? newQty / oldQty : 1;
+                                  items.forEach(item => {
+                                    updateItem(room.id, item.id, { 
+                                      quantity: item.category === 'labor' ? newQty : Math.ceil(item.quantity * ratio * 100) / 100
+                                    });
+                                  });
+                                }}
+                                min="0.1"
+                                step="0.1"
+                              />
+                            </td>
+                            <td>{UNIT_LABELS[laborItem.unit]}</td>
+                            <td>
+                              <input 
+                                type="number" 
+                                className="table-input"
+                                value={laborItem.pricePerUnit}
+                                onChange={(e) => updateItem(room.id, laborItem.id, { pricePerUnit: parseFloat(e.target.value) || 0 })}
+                                min="0"
+                                step="0.01"
+                              />
+                            </td>
+                            <td className="text-primary font-medium">{workTotal.toFixed(0)} {t('common.currency')}</td>
+                            <td>
+                              <button className="btn btn-ghost btn-sm" onClick={() => items.forEach(item => removeItem(room.id, item.id))}>×</button>
+                            </td>
+                          </tr>
+                        ) : null;
+                      });
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          
+          {/* List View (default) */}
+          {worksViewMode === 'list' && rooms.map(room => {
             const totals = calcRoom(room);
             const templates = user.roomRenovationTemplates.filter(temp => temp.roomType === room.roomType);
             
