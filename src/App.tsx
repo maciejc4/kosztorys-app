@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { mockApi, getApiConfig } from './api';
-import { 
+import {
   UserData, ItemTemplate, WorkTemplate, RoomRenovationTemplate,
   Estimate, EstimateItem, EstimateRoom, WorkMaterial,
   UnitType, RoomType, WorkCategory, UNIT_LABELS, ROOM_LABELS, DEFAULT_ROOM_NAMES, WORK_CATEGORY_LABELS
@@ -34,8 +34,8 @@ const LanguageSelector: React.FC = memo(() => {
 
   return (
     <div className="language-selector" style={{ position: 'relative' }}>
-      <button 
-        className="btn btn-ghost btn-sm" 
+      <button
+        className="btn btn-ghost btn-sm"
         onClick={() => setIsOpen(!isOpen)}
         style={{ fontSize: '1rem', padding: '0.25rem 0.5rem' }}
       >
@@ -48,7 +48,7 @@ const LanguageSelector: React.FC = memo(() => {
           boxShadow: 'var(--shadow-md)', zIndex: 1000, minWidth: '120px'
         }}>
           {SUPPORTED_LANGUAGES.map(lang => (
-            <button 
+            <button
               key={lang.code}
               className="btn btn-ghost btn-sm w-full"
               style={{ justifyContent: 'flex-start', borderRadius: 0 }}
@@ -97,13 +97,13 @@ const Login: React.FC<{ onLogin: (user: UserData) => void }> = memo(({ onLogin }
           <h1 className="login-title">{t('appName')}</h1>
           <p className="login-subtitle">{t('appSubtitle')}</p>
         </div>
-        
+
         {config.retentionHours > 0 && (
           <div className="retention-notice">
             ⏰ {t('login.demoNotice', { hours: config.retentionHours })}
           </div>
         )}
-        
+
         <div className="tabs mb-2">
           <button className={`tab ${mode === 'new' ? 'active' : ''}`} onClick={() => setMode('new')}>
             {t('login.newAccount')}
@@ -119,7 +119,7 @@ const Login: React.FC<{ onLogin: (user: UserData) => void }> = memo(({ onLogin }
               <input type="text" className="form-input" placeholder={t('login.companyPlaceholder')}
                 value={username} onChange={(e) => { setUsername(e.target.value); setError(''); }} />
             </div>
-            
+
             <div className="form-group">
               <label className="form-label">{t('login.accountType')}</label>
               <div className="account-type-options">
@@ -145,7 +145,7 @@ const Login: React.FC<{ onLogin: (user: UserData) => void }> = memo(({ onLogin }
                 </label>
               </div>
             </div>
-            
+
             <button className="btn btn-primary btn-block" onClick={handleCreate}>{t('login.start')}</button>
           </>
         ) : (
@@ -165,34 +165,34 @@ const Login: React.FC<{ onLogin: (user: UserData) => void }> = memo(({ onLogin }
 });
 
 // ============ Search Input ============
-const SearchInput: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string }> = 
+const SearchInput: React.FC<{ value: string; onChange: (v: string) => void; placeholder?: string }> =
   memo(({ value, onChange, placeholder }) => {
-  const { t } = useTranslation();
-  return (
-  <div className="search-input mb-1">
-    <span className="search-input-icon">🔍</span>
-    <input type="text" className="form-input" style={{ paddingLeft: '2.25rem' }}
-      placeholder={placeholder || t('common.search')} value={value} onChange={(e) => onChange(e.target.value)} />
-  </div>
-  );
-});
+    const { t } = useTranslation();
+    return (
+      <div className="search-input mb-1">
+        <span className="search-input-icon">🔍</span>
+        <input type="text" className="form-input" style={{ paddingLeft: '2.25rem' }}
+          placeholder={placeholder || t('common.search')} value={value} onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  });
 
 // ============ View Mode Toggle ============
-const ViewModeToggle: React.FC<{ 
-  mode: 'list' | 'table'; 
+const ViewModeToggle: React.FC<{
+  mode: 'list' | 'table';
   onChange: (mode: 'list' | 'table') => void;
 }> = memo(({ mode, onChange }) => {
   const { t } = useTranslation();
   return (
     <div className="view-mode-toggle">
-      <button 
+      <button
         className={`view-mode-btn ${mode === 'list' ? 'active' : ''}`}
         onClick={() => onChange('list')}
         title={t('tableView.listView')}
       >
         <span>☰</span>
       </button>
-      <button 
+      <button
         className={`view-mode-btn ${mode === 'table' ? 'active' : ''}`}
         onClick={() => onChange('table')}
         title={t('tableView.tableViewLabel')}
@@ -252,7 +252,7 @@ const AdBanner: React.FC<AdBannerProps> = memo(({ adSlot, adClient }) => {
 const RetentionTimer: React.FC<{ user: UserData }> = memo(({ user }) => {
   const { t } = useTranslation();
   const [remaining, setRemaining] = useState<number | null>(mockApi.getRemainingTime(user));
-  
+
   useEffect(() => {
     if (remaining === null) return;
     const interval = setInterval(() => {
@@ -260,11 +260,11 @@ const RetentionTimer: React.FC<{ user: UserData }> = memo(({ user }) => {
     }, 60000);
     return () => clearInterval(interval);
   }, [user]);
-  
+
   if (remaining === null || remaining <= 0) return null;
-  
+
   const isLow = remaining < 2 * 60 * 60 * 1000;
-  
+
   return (
     <div className={`retention-timer ${isLow ? 'low' : ''}`}>
       ⏰ {t('settings.remaining')} {formatRemainingTime(remaining)}
@@ -361,7 +361,7 @@ const WorkTemplateModal: React.FC<{
   const [roomTypes, setRoomTypes] = useState<RoomType[]>(template?.roomTypes || ['LIVING_ROOM']);
   const [showInlineItemModal, setShowInlineItemModal] = useState(false);
   const [inlineItemCategory, setInlineItemCategory] = useState<'LABOR' | 'MATERIAL'>('MATERIAL');
-  
+
   const buildInitialItems = (): WorkItem[] => {
     const items: WorkItem[] = [];
     if (template) {
@@ -374,7 +374,7 @@ const WorkTemplateModal: React.FC<{
     }
     return items;
   };
-  
+
   const [items, setItems] = useState<WorkItem[]>(buildInitialItems);
   const [newItemId, setNewItemId] = useState('');
   const [newItemQty, setNewItemQty] = useState('1');
@@ -390,10 +390,10 @@ const WorkTemplateModal: React.FC<{
       alert(t('templates.itemAlreadyAdded'));
       return;
     }
-    setItems([...items, { 
-      itemTemplateId: newItemId, 
-      quantityPerUnit: parseFloat(newItemQty), 
-      category: newItemCategory 
+    setItems([...items, {
+      itemTemplateId: newItemId,
+      quantityPerUnit: parseFloat(newItemQty),
+      category: newItemCategory
     }]);
     setNewItemId('');
     setNewItemQty('1');
@@ -409,7 +409,7 @@ const WorkTemplateModal: React.FC<{
   };
 
   const removeItem = (idx: number) => setItems(items.filter((_, i) => i !== idx));
-  
+
   const updateItemQty = (idx: number, qty: number) => {
     setItems(items.map((item, i) => i === idx ? { ...item, quantityPerUnit: qty } : item));
   };
@@ -427,32 +427,32 @@ const WorkTemplateModal: React.FC<{
       alert(t('templates.roomsRequired'));
       return;
     }
-    
+
     const laborItem = items.find(i => i.category === 'LABOR');
     const laborTemplate = laborItem ? user.itemTemplates.find(t => t.id === laborItem.itemTemplateId) : null;
-    
+
     const materials: WorkMaterial[] = items
       .filter(i => i.category === 'MATERIAL')
       .map(i => ({ itemTemplateId: i.itemTemplateId, quantityPerUnit: i.quantityPerUnit }));
-    
-    onSave({ 
-      name: name.trim(), 
-      unit, 
+
+    onSave({
+      name: name.trim(),
+      unit,
       laborPrice: laborTemplate?.pricePerUnit || 0,
       laborItemId: laborItem?.itemTemplateId,
-      materials, 
-      roomTypes 
+      materials,
+      roomTypes
     });
   };
 
   const laborItemsInWork = items.filter(i => i.category === 'LABOR');
   const materialItemsInWork = items.filter(i => i.category === 'MATERIAL');
-  
+
   const calcLaborTotal = () => laborItemsInWork.reduce((sum, item) => {
     const template = user.itemTemplates.find(t => t.id === item.itemTemplateId);
     return sum + (template?.pricePerUnit || 0) * item.quantityPerUnit;
   }, 0);
-  
+
   const calcMaterialTotal = () => materialItemsInWork.reduce((sum, item) => {
     const template = user.itemTemplates.find(t => t.id === item.itemTemplateId);
     return sum + (template?.pricePerUnit || 0) * item.quantityPerUnit;
@@ -460,161 +460,161 @@ const WorkTemplateModal: React.FC<{
 
   return (
     <>
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
-        <div className="modal-header">
-          <h3 className="modal-title">{template ? t('templates.editWork') : t('templates.newWork')}</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-        <div className="modal-body">
-          <div className="form-group">
-            <label className="form-label">{t('templates.workName')} *</label>
-            <input type="text" className="form-input" placeholder={t('templates.workNamePlaceholder')}
-              value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+          <div className="modal-header">
+            <h3 className="modal-title">{template ? t('templates.editWork') : t('templates.newWork')}</h3>
+            <button className="modal-close" onClick={onClose}>×</button>
           </div>
-          
-          <div className="form-row">
+          <div className="modal-body">
             <div className="form-group">
-              <label className="form-label">{t('templates.workUnit')}</label>
-              <select className="form-select" value={unit} onChange={(e) => setUnit(e.target.value as UnitType)}>
-                {Object.entries(UNIT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
+              <label className="form-label">{t('templates.workName')} *</label>
+              <input type="text" className="form-input" placeholder={t('templates.workNamePlaceholder')}
+                value={name} onChange={(e) => setName(e.target.value)} autoFocus />
             </div>
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label">{t('templates.rooms')} *</label>
-            <div className="filter-pills">
-              {Object.entries(ROOM_LABELS).map(([k, v]) => (
-                <button key={k} className={`filter-pill ${roomTypes.includes(k as RoomType) ? 'active' : ''}`}
-                  onClick={() => toggleRoomType(k as RoomType)}>{v}</button>
-              ))}
-            </div>
-          </div>
 
-          <div className="form-group" style={{ marginTop: '1rem' }}>
-            <label className="form-label">{t('templates.itemsInWork')} ({t('templates.perUnit')} {UNIT_LABELS[unit]})</label>
-            
-            {laborItemsInWork.length > 0 && (
-              <div style={{ background: 'var(--accent-50)', padding: '0.5rem', borderRadius: 'var(--radius)', marginBottom: '0.5rem' }}>
-                <p className="text-xs font-semibold mb-1" style={{ color: 'var(--accent-600)' }}>🔧 {t('common.labor').toUpperCase()}</p>
-                {laborItemsInWork.map((item) => {
-                  const itemIdx = items.indexOf(item);
-                  const itemTemplate = user.itemTemplates.find(t => t.id === item.itemTemplateId);
-                  return (
-                    <div key={item.itemTemplateId} className="flex items-center gap-1 mb-1" style={{ background: 'white', padding: '0.375rem', borderRadius: 'var(--radius)' }}>
-                      <span className="flex-1 text-sm">{itemTemplate?.name || '?'}</span>
-                      <input type="number" className="form-input" style={{ width: '50px' }} 
-                        value={item.quantityPerUnit} 
-                        onChange={(e) => updateItemQty(itemIdx, parseFloat(e.target.value) || 0)}
-                        min="0.01" step="0.01" />
-                      <span className="text-xs text-gray">{itemTemplate ? UNIT_LABELS[itemTemplate.unit] : ''}</span>
-                      <button className="btn btn-ghost btn-sm" onClick={() => removeItem(itemIdx)}>×</button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            
-            {materialItemsInWork.length > 0 && (
-              <div style={{ background: 'var(--gray-50)', padding: '0.5rem', borderRadius: 'var(--radius)', marginBottom: '0.5rem' }}>
-                <p className="text-xs font-semibold mb-1 text-gray">📦 {t('common.materials').toUpperCase()}</p>
-                {materialItemsInWork.map((item) => {
-                  const itemIdx = items.indexOf(item);
-                  const itemTemplate = user.itemTemplates.find(t => t.id === item.itemTemplateId);
-                  return (
-                    <div key={item.itemTemplateId} className="flex items-center gap-1 mb-1" style={{ background: 'white', padding: '0.375rem', borderRadius: 'var(--radius)' }}>
-                      <span className="flex-1 text-sm">{itemTemplate?.name || '?'}</span>
-                      <input type="number" className="form-input" style={{ width: '50px' }} 
-                        value={item.quantityPerUnit} 
-                        onChange={(e) => updateItemQty(itemIdx, parseFloat(e.target.value) || 0)}
-                        min="0.01" step="0.01" />
-                      <span className="text-xs text-gray">{itemTemplate ? UNIT_LABELS[itemTemplate.unit] : ''}</span>
-                      <button className="btn btn-ghost btn-sm" onClick={() => removeItem(itemIdx)}>×</button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            
-            {items.length === 0 && (
-              <div style={{ background: 'var(--gray-50)', padding: '0.75rem', borderRadius: 'var(--radius)', textAlign: 'center', marginBottom: '0.5rem' }}>
-                <p className="text-sm text-gray">{t('templates.addItems')}</p>
-              </div>
-            )}
-            
-            <div style={{ background: 'var(--gray-100)', padding: '0.5rem', borderRadius: 'var(--radius)' }}>
-              <div className="flex gap-1 mb-1">
-                <button 
-                  className={`filter-pill ${newItemCategory === 'LABOR' ? 'active' : ''}`}
-                  onClick={() => { setNewItemCategory('LABOR'); setNewItemId(''); }}
-                  style={{ fontSize: '0.7rem' }}
-                >🔧 {t('common.labor')}</button>
-                <button 
-                  className={`filter-pill ${newItemCategory === 'MATERIAL' ? 'active' : ''}`}
-                  onClick={() => { setNewItemCategory('MATERIAL'); setNewItemId(''); }}
-                  style={{ fontSize: '0.7rem' }}
-                >📦 {t('common.material')}</button>
-              </div>
-              <div className="flex gap-1">
-                <select className="form-select" style={{ flex: 2 }} value={newItemId}
-                  onChange={(e) => setNewItemId(e.target.value)}>
-                  <option value="">{t('templates.selectItem')}...</option>
-                  {allItems.map(item => (
-                    <option key={item.id} value={item.id} disabled={items.some(i => i.itemTemplateId === item.id)}>
-                      {item.name} ({item.pricePerUnit} {t('common.currency')}/{UNIT_LABELS[item.unit]})
-                    </option>
-                  ))}
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">{t('templates.workUnit')}</label>
+                <select className="form-select" value={unit} onChange={(e) => setUnit(e.target.value as UnitType)}>
+                  {Object.entries(UNIT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
-                <input type="number" className="form-input" style={{ width: '50px' }}
-                  value={newItemQty} onChange={(e) => setNewItemQty(e.target.value)} min="0.01" step="0.01" />
-                <button className="btn btn-primary btn-sm" onClick={addItem} disabled={!newItemId}>+</button>
               </div>
-              {allItems.length === 0 && (
-                <button className="btn btn-secondary btn-sm w-full mt-1" 
-                  onClick={() => { setInlineItemCategory(newItemCategory); setShowInlineItemModal(true); }}>
-                  {t('common.createNew')}
-                </button>
-              )}
-              {allItems.length > 0 && (
-                <button className="btn btn-ghost btn-sm w-full mt-1" style={{ fontSize: '0.7rem' }}
-                  onClick={() => { setInlineItemCategory(newItemCategory); setShowInlineItemModal(true); }}>
-                  {t('templates.orCreateNew')}
-                </button>
-              )}
             </div>
+
+            <div className="form-group">
+              <label className="form-label">{t('templates.rooms')} *</label>
+              <div className="filter-pills">
+                {Object.entries(ROOM_LABELS).map(([k, v]) => (
+                  <button key={k} className={`filter-pill ${roomTypes.includes(k as RoomType) ? 'active' : ''}`}
+                    onClick={() => toggleRoomType(k as RoomType)}>{v}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginTop: '1rem' }}>
+              <label className="form-label">{t('templates.itemsInWork')} ({t('templates.perUnit')} {UNIT_LABELS[unit]})</label>
+
+              {laborItemsInWork.length > 0 && (
+                <div style={{ background: 'var(--accent-50)', padding: '0.5rem', borderRadius: 'var(--radius)', marginBottom: '0.5rem' }}>
+                  <p className="text-xs font-semibold mb-1" style={{ color: 'var(--accent-600)' }}>🔧 {t('common.labor').toUpperCase()}</p>
+                  {laborItemsInWork.map((item) => {
+                    const itemIdx = items.indexOf(item);
+                    const itemTemplate = user.itemTemplates.find(t => t.id === item.itemTemplateId);
+                    return (
+                      <div key={item.itemTemplateId} className="flex items-center gap-1 mb-1" style={{ background: 'white', padding: '0.375rem', borderRadius: 'var(--radius)' }}>
+                        <span className="flex-1 text-sm">{itemTemplate?.name || '?'}</span>
+                        <input type="number" className="form-input" style={{ width: '50px' }}
+                          value={item.quantityPerUnit}
+                          onChange={(e) => updateItemQty(itemIdx, parseFloat(e.target.value) || 0)}
+                          min="0.01" step="0.01" />
+                        <span className="text-xs text-gray">{itemTemplate ? UNIT_LABELS[itemTemplate.unit] : ''}</span>
+                        <button className="btn btn-ghost btn-sm" onClick={() => removeItem(itemIdx)}>×</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {materialItemsInWork.length > 0 && (
+                <div style={{ background: 'var(--gray-50)', padding: '0.5rem', borderRadius: 'var(--radius)', marginBottom: '0.5rem' }}>
+                  <p className="text-xs font-semibold mb-1 text-gray">📦 {t('common.materials').toUpperCase()}</p>
+                  {materialItemsInWork.map((item) => {
+                    const itemIdx = items.indexOf(item);
+                    const itemTemplate = user.itemTemplates.find(t => t.id === item.itemTemplateId);
+                    return (
+                      <div key={item.itemTemplateId} className="flex items-center gap-1 mb-1" style={{ background: 'white', padding: '0.375rem', borderRadius: 'var(--radius)' }}>
+                        <span className="flex-1 text-sm">{itemTemplate?.name || '?'}</span>
+                        <input type="number" className="form-input" style={{ width: '50px' }}
+                          value={item.quantityPerUnit}
+                          onChange={(e) => updateItemQty(itemIdx, parseFloat(e.target.value) || 0)}
+                          min="0.01" step="0.01" />
+                        <span className="text-xs text-gray">{itemTemplate ? UNIT_LABELS[itemTemplate.unit] : ''}</span>
+                        <button className="btn btn-ghost btn-sm" onClick={() => removeItem(itemIdx)}>×</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {items.length === 0 && (
+                <div style={{ background: 'var(--gray-50)', padding: '0.75rem', borderRadius: 'var(--radius)', textAlign: 'center', marginBottom: '0.5rem' }}>
+                  <p className="text-sm text-gray">{t('templates.addItems')}</p>
+                </div>
+              )}
+
+              <div style={{ background: 'var(--gray-100)', padding: '0.5rem', borderRadius: 'var(--radius)' }}>
+                <div className="flex gap-1 mb-1">
+                  <button
+                    className={`filter-pill ${newItemCategory === 'LABOR' ? 'active' : ''}`}
+                    onClick={() => { setNewItemCategory('LABOR'); setNewItemId(''); }}
+                    style={{ fontSize: '0.7rem' }}
+                  >🔧 {t('common.labor')}</button>
+                  <button
+                    className={`filter-pill ${newItemCategory === 'MATERIAL' ? 'active' : ''}`}
+                    onClick={() => { setNewItemCategory('MATERIAL'); setNewItemId(''); }}
+                    style={{ fontSize: '0.7rem' }}
+                  >📦 {t('common.material')}</button>
+                </div>
+                <div className="flex gap-1">
+                  <select className="form-select" style={{ flex: 2 }} value={newItemId}
+                    onChange={(e) => setNewItemId(e.target.value)}>
+                    <option value="">{t('templates.selectItem')}...</option>
+                    {allItems.map(item => (
+                      <option key={item.id} value={item.id} disabled={items.some(i => i.itemTemplateId === item.id)}>
+                        {item.name} ({item.pricePerUnit} {t('common.currency')}/{UNIT_LABELS[item.unit]})
+                      </option>
+                    ))}
+                  </select>
+                  <input type="number" className="form-input" style={{ width: '50px' }}
+                    value={newItemQty} onChange={(e) => setNewItemQty(e.target.value)} min="0.01" step="0.01" />
+                  <button className="btn btn-primary btn-sm" onClick={addItem} disabled={!newItemId}>+</button>
+                </div>
+                {allItems.length === 0 && (
+                  <button className="btn btn-secondary btn-sm w-full mt-1"
+                    onClick={() => { setInlineItemCategory(newItemCategory); setShowInlineItemModal(true); }}>
+                    {t('common.createNew')}
+                  </button>
+                )}
+                {allItems.length > 0 && (
+                  <button className="btn btn-ghost btn-sm w-full mt-1" style={{ fontSize: '0.7rem' }}
+                    onClick={() => { setInlineItemCategory(newItemCategory); setShowInlineItemModal(true); }}>
+                    {t('templates.orCreateNew')}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {items.length > 0 && (
+              <div style={{ background: 'var(--primary)', color: 'white', padding: '0.5rem', borderRadius: 'var(--radius)', marginTop: '0.75rem' }}>
+                <div className="flex justify-between text-sm">
+                  <span>{t('common.labor')}:</span>
+                  <span>{calcLaborTotal().toFixed(2)} {t('common.currency')}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>{t('common.materials')}:</span>
+                  <span>{calcMaterialTotal().toFixed(2)} {t('common.currency')}</span>
+                </div>
+                <div className="flex justify-between font-semibold" style={{ marginTop: '0.25rem', paddingTop: '0.25rem', borderTop: '1px solid rgba(255,255,255,0.3)' }}>
+                  <span>{t('common.total')} / {UNIT_LABELS[unit]}:</span>
+                  <span>{(calcLaborTotal() + calcMaterialTotal()).toFixed(2)} {t('common.currency')}</span>
+                </div>
+              </div>
+            )}
           </div>
-          
-          {items.length > 0 && (
-            <div style={{ background: 'var(--primary)', color: 'white', padding: '0.5rem', borderRadius: 'var(--radius)', marginTop: '0.75rem' }}>
-              <div className="flex justify-between text-sm">
-                <span>{t('common.labor')}:</span>
-                <span>{calcLaborTotal().toFixed(2)} {t('common.currency')}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>{t('common.materials')}:</span>
-                <span>{calcMaterialTotal().toFixed(2)} {t('common.currency')}</span>
-              </div>
-              <div className="flex justify-between font-semibold" style={{ marginTop: '0.25rem', paddingTop: '0.25rem', borderTop: '1px solid rgba(255,255,255,0.3)' }}>
-                <span>{t('common.total')} / {UNIT_LABELS[unit]}:</span>
-                <span>{(calcLaborTotal() + calcMaterialTotal()).toFixed(2)} {t('common.currency')}</span>
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
-          <button className="btn btn-primary" onClick={handleSubmit}>{t('templates.saveTemplate')}</button>
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
+            <button className="btn btn-primary" onClick={handleSubmit}>{t('templates.saveTemplate')}</button>
+          </div>
         </div>
       </div>
-    </div>
-    {showInlineItemModal && (
-      <ItemTemplateModal 
-        template={{ id: '', name: '', unit: 'SQUARE_METER', pricePerUnit: 0, category: inlineItemCategory }}
-        onSave={handleInlineItemSave}
-        onClose={() => setShowInlineItemModal(false)}
-      />
-    )}
+      {showInlineItemModal && (
+        <ItemTemplateModal
+          template={{ id: '', name: '', unit: 'SQUARE_METER', pricePerUnit: 0, category: inlineItemCategory }}
+          onSave={handleInlineItemSave}
+          onClose={() => setShowInlineItemModal(false)}
+        />
+      )}
     </>
   );
 });
@@ -663,82 +663,82 @@ const RenovationTemplateModal: React.FC<{
 
   return (
     <>
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-        <div className="modal-header">
-          <h3 className="modal-title">{template ? t('templates.editRenovation') : t('templates.newRenovation')}</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-        <div className="modal-body">
-          <div className="form-group">
-            <label className="form-label">{t('templates.templateName')}</label>
-            <input type="text" className="form-input" placeholder={t('templates.templateNamePlaceholder')}
-              value={name} onChange={(e) => setName(e.target.value)} />
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+          <div className="modal-header">
+            <h3 className="modal-title">{template ? t('templates.editRenovation') : t('templates.newRenovation')}</h3>
+            <button className="modal-close" onClick={onClose}>×</button>
           </div>
-          <div className="form-row">
+          <div className="modal-body">
             <div className="form-group">
-              <label className="form-label">{t('templates.roomType')}</label>
-              <select className="form-select" value={roomType} onChange={(e) => setRoomType(e.target.value as RoomType)}>
-                {Object.entries(ROOM_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
+              <label className="form-label">{t('templates.templateName')}</label>
+              <input type="text" className="form-input" placeholder={t('templates.templateNamePlaceholder')}
+                value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">{t('templates.roomType')}</label>
+                <select className="form-select" value={roomType} onChange={(e) => setRoomType(e.target.value as RoomType)}>
+                  {Object.entries(ROOM_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">{t('common.description')}</label>
+              <input type="text" className="form-input" placeholder="..."
+                value={description} onChange={(e) => setDescription(e.target.value)} />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">{t('templates.worksInTemplate')}</label>
+              {works.map((w, idx) => {
+                const work = user.workTemplates.find(wt => wt.id === w.workTemplateId);
+                return (
+                  <div key={idx} className="flex items-center gap-1 mb-1" style={{ background: 'var(--gray-50)', padding: '0.375rem', borderRadius: 'var(--radius)' }}>
+                    <span className="flex-1 text-sm">{work?.name || '?'}</span>
+                    <span className="text-xs text-gray">{w.defaultQuantity} {work ? UNIT_LABELS[work.unit] : ''}</span>
+                    <button className="btn btn-ghost btn-sm" onClick={() => removeWork(idx)}>×</button>
+                  </div>
+                );
+              })}
+              <div className="flex gap-1 mt-1">
+                <select className="form-select" style={{ flex: 2 }} value={newWorkId}
+                  onChange={(e) => setNewWorkId(e.target.value)}>
+                  <option value="">{t('templates.selectWork')}</option>
+                  {availableWorks.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                </select>
+                <input type="number" className="form-input" style={{ width: '60px' }}
+                  value={newWorkQty} onChange={(e) => setNewWorkQty(e.target.value)} min="0.1" step="0.1" />
+                <button className="btn btn-primary btn-sm" onClick={addWork} disabled={!newWorkId}>+</button>
+              </div>
+              {availableWorks.length === 0 && (
+                <button className="btn btn-secondary btn-sm w-full mt-1" onClick={() => setShowInlineWorkModal(true)}>
+                  {t('common.createNew')}
+                </button>
+              )}
+              {availableWorks.length > 0 && (
+                <button className="btn btn-ghost btn-sm w-full mt-1" style={{ fontSize: '0.7rem' }}
+                  onClick={() => setShowInlineWorkModal(true)}>
+                  {t('templates.orCreateNew')}
+                </button>
+              )}
             </div>
           </div>
-          <div className="form-group">
-            <label className="form-label">{t('common.description')}</label>
-            <input type="text" className="form-input" placeholder="..."
-              value={description} onChange={(e) => setDescription(e.target.value)} />
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
+            <button className="btn btn-primary" onClick={handleSubmit}>{t('common.save')}</button>
           </div>
-          
-          <div className="form-group">
-            <label className="form-label">{t('templates.worksInTemplate')}</label>
-            {works.map((w, idx) => {
-              const work = user.workTemplates.find(wt => wt.id === w.workTemplateId);
-              return (
-                <div key={idx} className="flex items-center gap-1 mb-1" style={{ background: 'var(--gray-50)', padding: '0.375rem', borderRadius: 'var(--radius)' }}>
-                  <span className="flex-1 text-sm">{work?.name || '?'}</span>
-                  <span className="text-xs text-gray">{w.defaultQuantity} {work ? UNIT_LABELS[work.unit] : ''}</span>
-                  <button className="btn btn-ghost btn-sm" onClick={() => removeWork(idx)}>×</button>
-                </div>
-              );
-            })}
-            <div className="flex gap-1 mt-1">
-              <select className="form-select" style={{ flex: 2 }} value={newWorkId}
-                onChange={(e) => setNewWorkId(e.target.value)}>
-                <option value="">{t('templates.selectWork')}</option>
-                {availableWorks.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-              </select>
-              <input type="number" className="form-input" style={{ width: '60px' }}
-                value={newWorkQty} onChange={(e) => setNewWorkQty(e.target.value)} min="0.1" step="0.1" />
-              <button className="btn btn-primary btn-sm" onClick={addWork} disabled={!newWorkId}>+</button>
-            </div>
-            {availableWorks.length === 0 && (
-              <button className="btn btn-secondary btn-sm w-full mt-1" onClick={() => setShowInlineWorkModal(true)}>
-                {t('common.createNew')}
-              </button>
-            )}
-            {availableWorks.length > 0 && (
-              <button className="btn btn-ghost btn-sm w-full mt-1" style={{ fontSize: '0.7rem' }}
-                onClick={() => setShowInlineWorkModal(true)}>
-                {t('templates.orCreateNew')}
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
-          <button className="btn btn-primary" onClick={handleSubmit}>{t('common.save')}</button>
         </div>
       </div>
-    </div>
-    {showInlineWorkModal && (
-      <WorkTemplateModal 
-        user={user}
-        template={{ id: '', name: '', unit: 'SQUARE_METER', laborPrice: 0, materials: [], roomTypes: [roomType] }}
-        onSave={handleInlineWorkSave}
-        onClose={() => setShowInlineWorkModal(false)}
-        onUserUpdate={onUserUpdate}
-      />
-    )}
+      {showInlineWorkModal && (
+        <WorkTemplateModal
+          user={user}
+          template={{ id: '', name: '', unit: 'SQUARE_METER', laborPrice: 0, materials: [], roomTypes: [roomType] }}
+          onSave={handleInlineWorkSave}
+          onClose={() => setShowInlineWorkModal(false)}
+          onUserUpdate={onUserUpdate}
+        />
+      )}
     </>
   );
 });
@@ -908,7 +908,7 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
               </div>
             )}
           </div>
-          
+
           {/* Table */}
           <div className="table-container">
             <table className="data-table">
@@ -926,22 +926,22 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
                 {filtered.map(item => (
                   <tr key={item.id} className={tableEdits[item.id] ? 'row-edited' : ''}>
                     <td>
-                      <input 
-                        type="checkbox" 
-                        checked={selectedIds.has(item.id)} 
-                        onChange={() => toggleSelect(item.id)} 
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(item.id)}
+                        onChange={() => toggleSelect(item.id)}
                       />
                     </td>
                     <td>
-                      <input 
-                        type="text" 
-                        className="table-input" 
+                      <input
+                        type="text"
+                        className="table-input"
                         value={getEditedValue(item, 'name') as string}
                         onChange={(e) => handleTableEdit(item.id, 'name', e.target.value)}
                       />
                     </td>
                     <td>
-                      <select 
+                      <select
                         className="table-input"
                         value={getEditedValue(item, 'category') as string}
                         onChange={(e) => handleTableEdit(item.id, 'category', e.target.value)}
@@ -951,7 +951,7 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
                       </select>
                     </td>
                     <td>
-                      <select 
+                      <select
                         className="table-input"
                         value={getEditedValue(item, 'unit') as string}
                         onChange={(e) => handleTableEdit(item.id, 'unit', e.target.value as UnitType)}
@@ -960,9 +960,9 @@ const ItemTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
                       </select>
                     </td>
                     <td>
-                      <input 
-                        type="number" 
-                        className="table-input" 
+                      <input
+                        type="number"
+                        className="table-input"
                         value={getEditedValue(item, 'pricePerUnit') as number}
                         onChange={(e) => handleTableEdit(item.id, 'pricePerUnit', parseFloat(e.target.value) || 0)}
                         step="0.01"
@@ -1152,15 +1152,15 @@ const WorkTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
                 {filtered.map(work => (
                   <tr key={work.id} className={tableEdits[work.id] ? 'row-edited' : ''}>
                     <td>
-                      <input 
-                        type="text" 
-                        className="table-input" 
+                      <input
+                        type="text"
+                        className="table-input"
                         value={getEditedValue(work, 'name') as string}
                         onChange={(e) => handleTableEdit(work.id, 'name', e.target.value)}
                       />
                     </td>
                     <td>
-                      <select 
+                      <select
                         className="table-input"
                         value={getEditedValue(work, 'unit') as string}
                         onChange={(e) => handleTableEdit(work.id, 'unit', e.target.value as UnitType)}
@@ -1169,9 +1169,9 @@ const WorkTemplatesView: React.FC<{ user: UserData; onUpdate: () => void }> = me
                       </select>
                     </td>
                     <td>
-                      <input 
-                        type="number" 
-                        className="table-input" 
+                      <input
+                        type="number"
+                        className="table-input"
                         value={getEditedValue(work, 'laborPrice') as number}
                         onChange={(e) => handleTableEdit(work.id, 'laborPrice', parseFloat(e.target.value) || 0)}
                         step="0.01"
@@ -1360,13 +1360,13 @@ const AddWorkModal: React.FC<{
     const qty = parseFloat(quantity) || 0;
     const items: EstimateItem[] = [];
     const workGroupId = uuidv4();
-    
+
     items.push({
       id: uuidv4(), templateId: work.id, name: work.name, unit: work.unit,
       quantity: qty, pricePerUnit: work.laborPrice, category: 'LABOR',
       workId: workGroupId, workName: work.name
     });
-    
+
     if (includeMaterials) {
       for (const m of work.materials) {
         const item = user.itemTemplates.find(it => it.id === m.itemTemplateId);
@@ -1399,91 +1399,91 @@ const AddWorkModal: React.FC<{
 
   return (
     <>
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-        <div className="modal-header">
-          <h3 className="modal-title">{t('estimates.addWorkTitle')} - {ROOM_LABELS[roomType]}</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-        <div className="modal-body">
-          <div className="form-group">
-            <label className="form-label">{t('estimates.selectWork')}</label>
-            <select className="form-select" value={selectedWork} onChange={(e) => setSelectedWork(e.target.value)}>
-              <option value="">-- {t('templates.selectWork')} --</option>
-              {available.map(w => <option key={w.id} value={w.id}>{w.name} ({w.laborPrice} {t('common.currency')}/{UNIT_LABELS[w.unit]})</option>)}
-            </select>
-            {available.length === 0 && (
-              <button className="btn btn-secondary btn-sm w-full mt-1" onClick={() => setShowInlineWorkModal(true)}>
-                {t('common.createNew')}
-              </button>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+          <div className="modal-header">
+            <h3 className="modal-title">{t('estimates.addWorkTitle')} - {ROOM_LABELS[roomType]}</h3>
+            <button className="modal-close" onClick={onClose}>×</button>
+          </div>
+          <div className="modal-body">
+            <div className="form-group">
+              <label className="form-label">{t('estimates.selectWork')}</label>
+              <select className="form-select" value={selectedWork} onChange={(e) => setSelectedWork(e.target.value)}>
+                <option value="">-- {t('templates.selectWork')} --</option>
+                {available.map(w => <option key={w.id} value={w.id}>{w.name} ({w.laborPrice} {t('common.currency')}/{UNIT_LABELS[w.unit]})</option>)}
+              </select>
+              {available.length === 0 && (
+                <button className="btn btn-secondary btn-sm w-full mt-1" onClick={() => setShowInlineWorkModal(true)}>
+                  {t('common.createNew')}
+                </button>
+              )}
+              {available.length > 0 && (
+                <button className="btn btn-ghost btn-sm w-full mt-1" style={{ fontSize: '0.7rem' }}
+                  onClick={() => setShowInlineWorkModal(true)}>
+                  {t('templates.orCreateNew')}
+                </button>
+              )}
+            </div>
+            {selectedWork && (
+              <div className="form-group">
+                <label className="form-label">{t('estimates.workQuantity')} ({UNIT_LABELS[user.workTemplates.find(w => w.id === selectedWork)?.unit || 'SQUARE_METER']})</label>
+                <input type="number" className="form-input" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="0.1" step="0.1" />
+              </div>
             )}
-            {available.length > 0 && (
-              <button className="btn btn-ghost btn-sm w-full mt-1" style={{ fontSize: '0.7rem' }}
-                onClick={() => setShowInlineWorkModal(true)}>
-                {t('templates.orCreateNew')}
-              </button>
+            {preview.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm font-medium mb-1">{t('estimates.itemsToAdd')}</p>
+                {preview.filter(i => i.category === 'LABOR').length > 0 && (
+                  <div style={{ background: 'var(--accent-50)', padding: '0.5rem', borderRadius: 'var(--radius)', marginBottom: '0.5rem' }}>
+                    <p className="text-xs font-semibold" style={{ color: 'var(--accent-600)' }}>{t('common.labor').toUpperCase()}</p>
+                    {preview.filter(i => i.category === 'LABOR').map(item => (
+                      <div key={item.id} className="item-row">
+                        <span className="item-row-name">{item.name}</span>
+                        <input type="number" className="item-row-input" value={item.quantity} onChange={(e) => updateQty(item.id, parseFloat(e.target.value) || 0)} />
+                        <span className="item-row-unit">{UNIT_LABELS[item.unit]}</span>
+                        <span>×</span>
+                        <input type="number" className="item-row-input" value={item.pricePerUnit} onChange={(e) => updatePrice(item.id, parseFloat(e.target.value) || 0)} />
+                        <span className="text-xs">{t('common.currency')}</span>
+                        <button className="btn btn-ghost btn-sm" onClick={() => remove(item.id)}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {preview.filter(i => i.category === 'MATERIAL').length > 0 && (
+                  <div style={{ background: 'var(--gray-50)', padding: '0.5rem', borderRadius: 'var(--radius)' }}>
+                    <p className="text-xs font-semibold text-gray">{t('common.materials').toUpperCase()}</p>
+                    {preview.filter(i => i.category === 'MATERIAL').map(item => (
+                      <div key={item.id} className="item-row">
+                        <span className="item-row-name">{item.name}</span>
+                        <input type="number" className="item-row-input" value={item.quantity} onChange={(e) => updateQty(item.id, parseFloat(e.target.value) || 0)} />
+                        <span className="item-row-unit">{UNIT_LABELS[item.unit]}</span>
+                        <span>×</span>
+                        <input type="number" className="item-row-input" value={item.pricePerUnit} onChange={(e) => updatePrice(item.id, parseFloat(e.target.value) || 0)} />
+                        <span className="text-xs">{t('common.currency')}</span>
+                        <button className="btn btn-ghost btn-sm" onClick={() => remove(item.id)}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="text-right mt-1 font-semibold text-primary">{t('common.total')}: {total.toFixed(2)} {t('common.currency')}</p>
+              </div>
             )}
           </div>
-          {selectedWork && (
-            <div className="form-group">
-              <label className="form-label">{t('estimates.workQuantity')} ({UNIT_LABELS[user.workTemplates.find(w => w.id === selectedWork)?.unit || 'SQUARE_METER']})</label>
-              <input type="number" className="form-input" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="0.1" step="0.1" />
-            </div>
-          )}
-          {preview.length > 0 && (
-            <div className="mt-2">
-              <p className="text-sm font-medium mb-1">{t('estimates.itemsToAdd')}</p>
-              {preview.filter(i => i.category === 'LABOR').length > 0 && (
-                <div style={{ background: 'var(--accent-50)', padding: '0.5rem', borderRadius: 'var(--radius)', marginBottom: '0.5rem' }}>
-                  <p className="text-xs font-semibold" style={{ color: 'var(--accent-600)' }}>{t('common.labor').toUpperCase()}</p>
-                  {preview.filter(i => i.category === 'LABOR').map(item => (
-                    <div key={item.id} className="item-row">
-                      <span className="item-row-name">{item.name}</span>
-                      <input type="number" className="item-row-input" value={item.quantity} onChange={(e) => updateQty(item.id, parseFloat(e.target.value) || 0)} />
-                      <span className="item-row-unit">{UNIT_LABELS[item.unit]}</span>
-                      <span>×</span>
-                      <input type="number" className="item-row-input" value={item.pricePerUnit} onChange={(e) => updatePrice(item.id, parseFloat(e.target.value) || 0)} />
-                      <span className="text-xs">{t('common.currency')}</span>
-                      <button className="btn btn-ghost btn-sm" onClick={() => remove(item.id)}>×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {preview.filter(i => i.category === 'MATERIAL').length > 0 && (
-                <div style={{ background: 'var(--gray-50)', padding: '0.5rem', borderRadius: 'var(--radius)' }}>
-                  <p className="text-xs font-semibold text-gray">{t('common.materials').toUpperCase()}</p>
-                  {preview.filter(i => i.category === 'MATERIAL').map(item => (
-                    <div key={item.id} className="item-row">
-                      <span className="item-row-name">{item.name}</span>
-                      <input type="number" className="item-row-input" value={item.quantity} onChange={(e) => updateQty(item.id, parseFloat(e.target.value) || 0)} />
-                      <span className="item-row-unit">{UNIT_LABELS[item.unit]}</span>
-                      <span>×</span>
-                      <input type="number" className="item-row-input" value={item.pricePerUnit} onChange={(e) => updatePrice(item.id, parseFloat(e.target.value) || 0)} />
-                      <span className="text-xs">{t('common.currency')}</span>
-                      <button className="btn btn-ghost btn-sm" onClick={() => remove(item.id)}>×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <p className="text-right mt-1 font-semibold text-primary">{t('common.total')}: {total.toFixed(2)} {t('common.currency')}</p>
-            </div>
-          )}
-        </div>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
-          <button className="btn btn-primary" onClick={() => preview.length > 0 && onAdd(preview)} disabled={preview.length === 0}>{t('common.add')}</button>
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={onClose}>{t('common.cancel')}</button>
+            <button className="btn btn-primary" onClick={() => preview.length > 0 && onAdd(preview)} disabled={preview.length === 0}>{t('common.add')}</button>
+          </div>
         </div>
       </div>
-    </div>
-    {showInlineWorkModal && (
-      <WorkTemplateModal 
-        user={user}
-        template={{ id: '', name: '', unit: 'SQUARE_METER', laborPrice: 0, materials: [], roomTypes: [roomType] }}
-        onSave={handleInlineWorkSave}
-        onClose={() => setShowInlineWorkModal(false)}
-        onUserUpdate={onUserUpdate}
-      />
-    )}
+      {showInlineWorkModal && (
+        <WorkTemplateModal
+          user={user}
+          template={{ id: '', name: '', unit: 'SQUARE_METER', laborPrice: 0, materials: [], roomTypes: [roomType] }}
+          onSave={handleInlineWorkSave}
+          onClose={() => setShowInlineWorkModal(false)}
+          onUserUpdate={onUserUpdate}
+        />
+      )}
     </>
   );
 };
@@ -1499,8 +1499,8 @@ const PDFExportModal: React.FC<{
 
   const handleExport = () => {
     generatePDF(
-      estimate, 
-      user.username, 
+      estimate,
+      user.username,
       { detailLevel, showMaterials: estimate.includeMaterials },
       { companyName: user.companyName, phoneNumber: user.phoneNumber }
     );
@@ -1520,15 +1520,15 @@ const PDFExportModal: React.FC<{
             <div className="flex flex-col gap-1">
               <label className="form-checkbox">
                 <input type="radio" name="detail" checked={detailLevel === 'simple'} onChange={() => setDetailLevel('simple')} />
-                <div><strong>{t('pdf.simple')}</strong><br/><span className="text-xs text-gray">{t('pdf.simpleDesc')}</span></div>
+                <div><strong>{t('pdf.simple')}</strong><br /><span className="text-xs text-gray">{t('pdf.simpleDesc')}</span></div>
               </label>
               <label className="form-checkbox">
                 <input type="radio" name="detail" checked={detailLevel === 'standard'} onChange={() => setDetailLevel('standard')} />
-                <div><strong>{t('pdf.standard')}</strong><br/><span className="text-xs text-gray">{t('pdf.standardDesc')}</span></div>
+                <div><strong>{t('pdf.standard')}</strong><br /><span className="text-xs text-gray">{t('pdf.standardDesc')}</span></div>
               </label>
               <label className="form-checkbox">
                 <input type="radio" name="detail" checked={detailLevel === 'detailed'} onChange={() => setDetailLevel('detailed')} />
-                <div><strong>{t('pdf.detailed')}</strong><br/><span className="text-xs text-gray">{t('pdf.detailedDesc')}</span></div>
+                <div><strong>{t('pdf.detailed')}</strong><br /><span className="text-xs text-gray">{t('pdf.detailedDesc')}</span></div>
               </label>
             </div>
           </div>
@@ -1552,32 +1552,32 @@ const EstimateEditor: React.FC<{
 }> = ({ user, estimate, onSave, onCancel, onUserUpdate }) => {
   const { t } = useTranslation();
   const isEditing = !!estimate;
-  
+
   // Wizard step (1-4)
   const [step, setStep] = useState(isEditing ? 4 : 1);
-  
+
   // Step 1: Client data
   const [clientName, setClientName] = useState(estimate?.clientName || '');
   const [clientAddress, setClientAddress] = useState(estimate?.clientAddress || '');
   const [projectDescription, setProjectDescription] = useState(estimate?.projectDescription || '');
-  
+
   // Step 2-3: Rooms
   const [rooms, setRooms] = useState<EstimateRoom[]>(estimate?.rooms || []);
   const [includeMaterials, setIncludeMaterials] = useState(estimate?.includeMaterials ?? true);
-  
+
   // Step 4: Summary & options
   const [laborDiscount, setLaborDiscount] = useState(estimate?.laborDiscountPercent?.toString() || '0');
   const [materialDiscount, setMaterialDiscount] = useState(estimate?.materialDiscountPercent?.toString() || '0');
   const [notes, setNotes] = useState(estimate?.notes || '');
-  
+
   // Room adding state
   const [newRoomType, setNewRoomType] = useState<RoomType>('LIVING_ROOM');
   const [newRoomName, setNewRoomName] = useState(DEFAULT_ROOM_NAMES['LIVING_ROOM']);
-  
+
   // Work modal state
   const [showWorkModal, setShowWorkModal] = useState(false);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
-  
+
   // Table view mode for Step 3
   const [worksViewMode, setWorksViewMode] = useState<'list' | 'table'>('list');
 
@@ -1620,8 +1620,8 @@ const EstimateEditor: React.FC<{
       const work = user.workTemplates.find(w => w.id === wr.workTemplateId);
       if (!work) continue;
       const workGroupId = uuidv4();
-      items.push({ 
-        id: uuidv4(), templateId: work.id, name: work.name, unit: work.unit, 
+      items.push({
+        id: uuidv4(), templateId: work.id, name: work.name, unit: work.unit,
         quantity: wr.defaultQuantity, pricePerUnit: work.laborPrice, category: 'LABOR',
         workId: workGroupId, workName: work.name
       });
@@ -1629,9 +1629,9 @@ const EstimateEditor: React.FC<{
         for (const m of work.materials) {
           const item = user.itemTemplates.find(t => t.id === m.itemTemplateId);
           if (item) {
-            items.push({ 
-              id: uuidv4(), templateId: item.id, name: item.name, unit: item.unit, 
-              quantity: Math.ceil(m.quantityPerUnit * wr.defaultQuantity * 100) / 100, 
+            items.push({
+              id: uuidv4(), templateId: item.id, name: item.name, unit: item.unit,
+              quantity: Math.ceil(m.quantityPerUnit * wr.defaultQuantity * 100) / 100,
               pricePerUnit: item.pricePerUnit, category: 'MATERIAL',
               workId: workGroupId, workName: work.name
             });
@@ -1719,7 +1719,7 @@ const EstimateEditor: React.FC<{
           )}
         </div>
         {step < 4 ? (
-          <button 
+          <button
             className={`btn btn-primary ${!canProceed ? 'btn-disabled' : ''}`}
             onClick={() => canProceed && setStep(step + 1)}
             disabled={!canProceed}
@@ -1739,14 +1739,14 @@ const EstimateEditor: React.FC<{
   return (
     <div className="wizard-container">
       {!isEditing && <StepIndicator />}
-      
+
       {/* Required fields info */}
       {!isEditing && step === 1 && (
         <div className="required-fields-info">
           <span>*</span> {t('validation.requiredFieldsInfo')}
         </div>
       )}
-      
+
       {/* Step 1: Client Data */}
       {step === 1 && (
         <div className="wizard-step-content">
@@ -1754,16 +1754,16 @@ const EstimateEditor: React.FC<{
             <h2>👤 {t('estimates.wizardStep1Title')}</h2>
             <p className="text-gray">{t('estimates.wizardStep1Desc')}</p>
           </div>
-          
+
           <div className="card">
             <div className="card-body">
               <div className="form-group">
                 <label className="form-label">{t('estimates.clientName')} <span className="required-star">*</span></label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className={`form-input form-input-lg ${!clientName.trim() ? 'form-input-required' : ''}`}
-                  placeholder={t('estimates.clientNamePlaceholder')} 
-                  value={clientName} 
+                  placeholder={t('estimates.clientNamePlaceholder')}
+                  value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
                   autoFocus
                 />
@@ -1774,29 +1774,29 @@ const EstimateEditor: React.FC<{
                   <p className="form-hint">Imię i nazwisko lub nazwa firmy klienta</p>
                 )}
               </div>
-              
+
               <div className="form-group">
                 <label className="form-label">{t('estimates.projectDescription')}</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder={t('estimates.projectDescriptionPlaceholder')} 
-                  value={projectDescription} 
-                  onChange={(e) => setProjectDescription(e.target.value)} 
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={t('estimates.projectDescriptionPlaceholder')}
+                  value={projectDescription}
+                  onChange={(e) => setProjectDescription(e.target.value)}
                 />
               </div>
-              
+
               <div className="form-group">
                 <label className="form-label">{t('estimates.clientAddress')}</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder={t('estimates.clientAddressPlaceholder')} 
-                  value={clientAddress} 
-                  onChange={(e) => setClientAddress(e.target.value)} 
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder={t('estimates.clientAddressPlaceholder')}
+                  value={clientAddress}
+                  onChange={(e) => setClientAddress(e.target.value)}
                 />
               </div>
-              
+
               <div className="form-group">
                 <label className="form-checkbox">
                   <input type="checkbox" checked={includeMaterials} onChange={(e) => setIncludeMaterials(e.target.checked)} />
@@ -1806,7 +1806,7 @@ const EstimateEditor: React.FC<{
               </div>
             </div>
           </div>
-          
+
           <div className="wizard-nav">
             <button className="btn btn-secondary" onClick={onCancel}>{t('common.cancel')}</button>
             <div style={{ flex: 1 }} />
@@ -1824,13 +1824,13 @@ const EstimateEditor: React.FC<{
             <h2>🏠 {t('estimates.wizardStep2Title')}</h2>
             <p className="text-gray">{t('estimates.wizardStep2Desc')}</p>
           </div>
-          
+
           {/* Room type selector */}
           <div className="card">
             <div className="card-body">
               <p className="form-label">{t('estimates.selectRoomType')}</p>
               <p className="form-hint mb-1">{t('estimates.selectRoomTypeHint')}</p>
-              
+
               <div className="room-type-grid">
                 {Object.entries(ROOM_LABELS).map(([key, label]) => (
                   <button
@@ -1839,30 +1839,30 @@ const EstimateEditor: React.FC<{
                     onClick={() => handleRoomTypeChange(key as RoomType)}
                   >
                     <span className="room-type-icon">
-                      {key === 'lazienka' && '🚿'}
-                      {key === 'kuchnia' && '🍳'}
+                      {key === 'BATHROOM' && '🚿'}
+                      {key === 'KITCHEN' && '🍳'}
                       {key === 'LIVING_ROOM' && '🛋️'}
-                      {key === 'sypialnia' && '🛏️'}
-                      {key === 'korytarz' && '🚪'}
-                      {key === 'balkon' && '🌿'}
-                      {key === 'dach_plaski' && '🏢'}
-                      {key === 'dach_skosny' && '🏠'}
-                      {key === 'inne' && '📦'}
+                      {key === 'BEDROOM' && '🛏️'}
+                      {key === 'HALLWAY' && '🚪'}
+                      {key === 'BALCONY' && '🌿'}
+                      {key === 'FLAT_ROOF' && '🏢'}
+                      {key === 'SLOPED_ROOF' && '🏠'}
+                      {key === 'OTHER' && '📦'}
                     </span>
                     <span className="room-type-label">{label}</span>
                   </button>
                 ))}
               </div>
-              
+
               <div className="form-group mt-2">
                 <label className="form-label">{t('estimates.roomName')}</label>
                 <div className="flex gap-1">
-                  <input 
-                    type="text" 
-                    className="form-input" 
-                    placeholder={t('estimates.roomNamePlaceholder')} 
-                    value={newRoomName} 
-                    onChange={(e) => setNewRoomName(e.target.value)} 
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder={t('estimates.roomNamePlaceholder')}
+                    value={newRoomName}
+                    onChange={(e) => setNewRoomName(e.target.value)}
                   />
                   <button className="btn btn-primary" onClick={addRoom}>
                     + {t('common.add')}
@@ -1871,7 +1871,7 @@ const EstimateEditor: React.FC<{
               </div>
             </div>
           </div>
-          
+
           {/* Added rooms list */}
           {rooms.length > 0 && (
             <div className="card mt-2">
@@ -1889,7 +1889,7 @@ const EstimateEditor: React.FC<{
               ))}
             </div>
           )}
-          
+
           {rooms.length === 0 && (
             <div className="card mt-2">
               <div className="empty-state">
@@ -1898,7 +1898,7 @@ const EstimateEditor: React.FC<{
               </div>
             </div>
           )}
-          
+
           <WizardNav />
         </div>
       )}
@@ -1913,7 +1913,7 @@ const EstimateEditor: React.FC<{
             </div>
             <ViewModeToggle mode={worksViewMode} onChange={setWorksViewMode} />
           </div>
-          
+
           {/* Table View for all works */}
           {worksViewMode === 'table' && rooms.some(r => r.items.length > 0) && (
             <div className="card">
@@ -1943,18 +1943,18 @@ const EstimateEditor: React.FC<{
                           workGroups.set(item.workId, existing);
                         }
                       });
-                      
+
                       return Array.from(workGroups.entries()).map(([workId, items]) => {
                         const laborItem = items.find(i => i.category === 'LABOR');
                         const workTotal = items.reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
-                        
+
                         return laborItem ? (
                           <tr key={workId}>
                             <td className="text-gray">{room.name}</td>
                             <td className="font-medium">{laborItem.workName}</td>
                             <td>
-                              <input 
-                                type="number" 
+                              <input
+                                type="number"
                                 className="table-input"
                                 value={laborItem.quantity}
                                 onChange={(e) => {
@@ -1962,7 +1962,7 @@ const EstimateEditor: React.FC<{
                                   const oldQty = laborItem.quantity;
                                   const ratio = oldQty > 0 ? newQty / oldQty : 1;
                                   items.forEach(item => {
-                                    updateItem(room.id, item.id, { 
+                                    updateItem(room.id, item.id, {
                                       quantity: item.category === 'LABOR' ? newQty : Math.ceil(item.quantity * ratio * 100) / 100
                                     });
                                   });
@@ -1973,8 +1973,8 @@ const EstimateEditor: React.FC<{
                             </td>
                             <td>{UNIT_LABELS[laborItem.unit]}</td>
                             <td>
-                              <input 
-                                type="number" 
+                              <input
+                                type="number"
                                 className="table-input"
                                 value={laborItem.pricePerUnit}
                                 onChange={(e) => updateItem(room.id, laborItem.id, { pricePerUnit: parseFloat(e.target.value) || 0 })}
@@ -1995,12 +1995,12 @@ const EstimateEditor: React.FC<{
               </div>
             </div>
           )}
-          
+
           {/* List View (default) */}
           {worksViewMode === 'list' && rooms.map(room => {
             const totals = calcRoom(room);
             const templates = user.roomRenovationTemplates.filter(temp => temp.roomType === room.roomType);
-            
+
             return (
               <div key={room.id} className="room-card">
                 <div className="room-card-header">
@@ -2012,7 +2012,7 @@ const EstimateEditor: React.FC<{
                     + {t('estimates.addWork')}
                   </button>
                 </div>
-                
+
                 {/* Quick start templates */}
                 {templates.length > 0 && room.items.length === 0 && (
                   <div className="card-body" style={{ background: 'var(--primary-50)', borderBottom: '1px solid var(--primary-100)' }}>
@@ -2027,7 +2027,7 @@ const EstimateEditor: React.FC<{
                     </div>
                   </div>
                 )}
-                
+
                 {room.items.length === 0 ? (
                   <div className="empty-state" style={{ padding: '1rem' }}>
                     <p className="text-sm">{t('estimates.noWorksInRoom')}</p>
@@ -2045,36 +2045,36 @@ const EstimateEditor: React.FC<{
                           workGroups.set(item.workId, existing);
                         }
                       });
-                      
+
                       return Array.from(workGroups.entries()).map(([workId, items]) => {
                         const workName = items[0]?.workName || t('templates.works');
                         const workTotal = items.reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
                         const laborItem = items.find(i => i.category === 'LABOR');
-                        
+
                         return (
                           <div key={workId} className="work-group-compact">
                             <div className="work-group-header">
                               <span className="work-group-title">🔧 {workName}</span>
                               <div className="flex items-center gap-1">
                                 {laborItem && (
-                                  <input 
-                                    type="number" 
-                                    className="item-row-input" 
-                                    value={laborItem.quantity} 
+                                  <input
+                                    type="number"
+                                    className="item-row-input"
+                                    value={laborItem.quantity}
                                     onChange={(e) => {
                                       const newQty = parseFloat(e.target.value) || 0;
                                       const oldQty = laborItem.quantity;
                                       const ratio = oldQty > 0 ? newQty / oldQty : 1;
-                                      
+
                                       // Update all items in this work group proportionally
                                       items.forEach(item => {
-                                        updateItem(room.id, item.id, { 
+                                        updateItem(room.id, item.id, {
                                           quantity: item.category === 'LABOR' ? newQty : Math.ceil(item.quantity * ratio * 100) / 100
                                         });
                                       });
                                     }}
-                                    min="0.1" 
-                                    step="0.1" 
+                                    min="0.1"
+                                    step="0.1"
                                   />
                                 )}
                                 <span className="text-xs">{laborItem ? UNIT_LABELS[laborItem.unit] : ''}</span>
@@ -2088,7 +2088,7 @@ const EstimateEditor: React.FC<{
                         );
                       });
                     })()}
-                    
+
                     <div className="room-total">
                       <strong>{t('common.total')}: {totals.total.toFixed(2)} {t('common.currency')}</strong>
                     </div>
@@ -2097,7 +2097,7 @@ const EstimateEditor: React.FC<{
               </div>
             );
           })}
-          
+
           <WizardNav />
         </div>
       )}
@@ -2109,7 +2109,7 @@ const EstimateEditor: React.FC<{
             <h2>📋 {t('estimates.wizardStep4Title')}</h2>
             <p className="text-gray">{t('estimates.wizardStep4Desc')}</p>
           </div>
-          
+
           {/* Client summary */}
           <div className="card">
             <div className="card-header">
@@ -2135,7 +2135,7 @@ const EstimateEditor: React.FC<{
               )}
             </div>
           </div>
-          
+
           {/* Rooms summary */}
           {rooms.map(room => {
             const totals = calcRoom(room);
@@ -2155,16 +2155,16 @@ const EstimateEditor: React.FC<{
                         workGroups.set(item.workId, existing);
                       }
                     });
-                    
+
                     return Array.from(workGroups.entries()).map(([workId, items]) => {
                       const workName = items[0]?.workName || t('templates.works');
                       const laborItem = items.find(i => i.category === 'LABOR');
                       const workTotal = items.reduce((s, i) => s + i.quantity * i.pricePerUnit, 0);
-                      
+
                       return (
                         <div key={workId} className="flex justify-between text-sm mb-1">
                           <span>
-                            🔧 {workName} 
+                            🔧 {workName}
                             <span className="text-gray text-xs"> ({laborItem?.quantity} {laborItem ? UNIT_LABELS[laborItem.unit] : ''})</span>
                           </span>
                           <strong>{workTotal.toFixed(2)} {t('common.currency')}</strong>
@@ -2180,7 +2180,7 @@ const EstimateEditor: React.FC<{
               </div>
             );
           })}
-          
+
           {/* Discounts (optional) */}
           <div className="card">
             <div className="card-header">
@@ -2201,23 +2201,23 @@ const EstimateEditor: React.FC<{
               </div>
             </div>
           </div>
-          
+
           {/* Notes (optional) */}
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">📝 {t('estimates.notesOptional')}</h3>
             </div>
             <div className="card-body">
-              <textarea 
-                className="form-input" 
-                rows={3} 
+              <textarea
+                className="form-input"
+                rows={3}
                 placeholder={t('common.notesPlaceholder')}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
             </div>
           </div>
-          
+
           {/* Final summary */}
           <div className="summary-box">
             <div className="summary-row">
@@ -2249,7 +2249,7 @@ const EstimateEditor: React.FC<{
               <span className="value">{grandTotal.toFixed(2)} {t('common.currency')}</span>
             </div>
           </div>
-          
+
           <div className="wizard-nav">
             {!isEditing && (
               <button className="btn btn-secondary" onClick={() => setStep(3)}>
@@ -2264,15 +2264,15 @@ const EstimateEditor: React.FC<{
           </div>
         </div>
       )}
-      
+
       {showWorkModal && activeRoom && (
-        <AddWorkModal 
-          user={user} 
-          roomType={activeRoom.roomType} 
+        <AddWorkModal
+          user={user}
+          roomType={activeRoom.roomType}
           includeMaterials={includeMaterials}
-          onAdd={(items) => addItems(activeRoom.id, items)} 
-          onClose={() => { setShowWorkModal(false); setActiveRoomId(null); }} 
-          onUserUpdate={onUserUpdate} 
+          onAdd={(items) => addItems(activeRoom.id, items)}
+          onClose={() => { setShowWorkModal(false); setActiveRoomId(null); }}
+          onUserUpdate={onUserUpdate}
         />
       )}
     </div>
@@ -2310,10 +2310,10 @@ const EstimatesView: React.FC<{ user: UserData; onUpdate: () => void; onEdit: (e
           <button className="btn btn-primary btn-sm" onClick={() => onEdit(null)}>+ {t('estimates.new')}</button>
         </div>
       </div>
-      
+
       {/* Google AdSense placeholder */}
       <AdBanner />
-      
+
       {user.estimates.length === 0 ? (
         <div className="card">
           <div className="empty-state">
@@ -2330,7 +2330,7 @@ const EstimatesView: React.FC<{ user: UserData; onUpdate: () => void; onEdit: (e
                 <div className="list-item-content">
                   <div className="list-item-title">{e.clientName}</div>
                   <div className="list-item-subtitle">
-                    {e.projectDescription || t('estimates.noDescription')} • {e.rooms.length} {t('estimates.rooms').toLowerCase()} • 
+                    {e.projectDescription || t('estimates.noDescription')} • {e.rooms.length} {t('estimates.rooms').toLowerCase()} •
                     <strong className="text-primary"> {calcTotal(e).toFixed(2)} {t('common.currency')}</strong>
                   </div>
                   <div className="list-item-subtitle text-xs text-gray">{new Date(e.createdAt).toLocaleDateString()}</div>
@@ -2342,8 +2342,8 @@ const EstimatesView: React.FC<{ user: UserData; onUpdate: () => void; onEdit: (e
               </div>
               {/* Prominent print button */}
               <div style={{ padding: '0.5rem 1rem 0.75rem', borderTop: '1px solid var(--gray-100)' }}>
-                <button 
-                  className="btn btn-primary btn-block print-estimate-btn" 
+                <button
+                  className="btn btn-primary btn-block print-estimate-btn"
                   onClick={() => { setPdfEstimate(e); setShowPDFModal(true); }}
                 >
                   🖨️ {t('pdf.print')}
@@ -2367,11 +2367,11 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void; onLogout: (
   const remaining = mockApi.getRemainingTime(user);
   const url = `${window.location.origin}${window.location.pathname}#${user.uniqueId}`;
   const copy = useCallback(() => { navigator.clipboard.writeText(url); alert(t('settings.copied')); }, [url, t]);
-  
+
   const [companyName, setCompanyName] = useState(user.companyName || '');
   const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || '');
   const [hasChanges, setHasChanges] = useState(false);
-  
+
   const handleSaveCompanyInfo = () => {
     mockApi.updateUser(user.uniqueId, { companyName, phoneNumber });
     setHasChanges(false);
@@ -2393,7 +2393,7 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void; onLogout: (
           </div>
         </div>
       )}
-      
+
       {/* Company Info */}
       <div className="card">
         <div className="card-header">
@@ -2406,10 +2406,10 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void; onLogout: (
           </div>
           <div className="form-group">
             <label className="form-label">{t('settings.companyName')}</label>
-            <input 
-              type="text" 
-              className="form-input" 
-              value={companyName} 
+            <input
+              type="text"
+              className="form-input"
+              value={companyName}
               onChange={(e) => { setCompanyName(e.target.value); setHasChanges(true); }}
               placeholder={user.username}
             />
@@ -2417,10 +2417,10 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void; onLogout: (
           </div>
           <div className="form-group">
             <label className="form-label">{t('settings.phoneNumber')}</label>
-            <input 
-              type="tel" 
-              className="form-input" 
-              value={phoneNumber} 
+            <input
+              type="tel"
+              className="form-input"
+              value={phoneNumber}
               onChange={(e) => { setPhoneNumber(e.target.value); setHasChanges(true); }}
               placeholder={t('settings.phonePlaceholder')}
             />
@@ -2433,7 +2433,7 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void; onLogout: (
           )}
         </div>
       </div>
-      
+
       {/* Account Settings */}
       <div className="card">
         <div className="card-header"><h2 className="card-title">⚙️ {t('settings.title')}</h2></div>
@@ -2458,7 +2458,7 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void; onLogout: (
             <label className="form-label">{t('settings.language')}</label>
             <div className="flex gap-1 flex-wrap">
               {SUPPORTED_LANGUAGES.map(lang => (
-                <button 
+                <button
                   key={lang.code}
                   className={`filter-pill ${i18n.language === lang.code ? 'active' : ''}`}
                   onClick={() => changeLanguage(lang.code)}
@@ -2483,11 +2483,11 @@ const SettingsView: React.FC<{ user: UserData; onUpdate: () => void; onLogout: (
       </div>
       <div className="card">
         <div className="card-body text-center text-xs text-gray">
-          {t('appName')} v2.3<br/>{t('settings.dataLocal')}
-          {config.retentionHours > 0 && <><br/>{t('settings.retention')}: {config.retentionHours}h</>}
+          {t('appName')} v2.3<br />{t('settings.dataLocal')}
+          {config.retentionHours > 0 && <><br />{t('settings.retention')}: {config.retentionHours}h</>}
         </div>
       </div>
-      
+
       {/* Logout */}
       <div className="card">
         <div className="card-body">
@@ -2523,16 +2523,16 @@ const AdminPanel: React.FC = () => {
       delete all[id];
       localStorage.setItem('kosztorys_users', JSON.stringify(all));
       loadUsers();
-      if (selectedUserId === id) { 
-        setSelectedUserId(null); 
-        setView('list'); 
+      if (selectedUserId === id) {
+        setSelectedUserId(null);
+        setView('list');
       }
     }
   };
 
   const deleteEstimate = (userId: string, estimateId: string) => {
-    if (confirm('Usunąć?')) { 
-      mockApi.deleteEstimate(userId, estimateId); 
+    if (confirm('Usunąć?')) {
+      mockApi.deleteEstimate(userId, estimateId);
       loadUsers();
     }
   };
@@ -2664,7 +2664,7 @@ const SmallAdPlaceholder: React.FC = memo(() => {
 // ============ Offline Required Screen ============
 const OfflineScreen: React.FC<{ onRetry: () => void }> = memo(({ onRetry }) => {
   const { t } = useTranslation();
-  
+
   return (
     <div className="login-container">
       <div className="login-card" style={{ textAlign: 'center' }}>
@@ -2673,19 +2673,19 @@ const OfflineScreen: React.FC<{ onRetry: () => void }> = memo(({ onRetry }) => {
           <h1 className="login-title">{t('offline.title')}</h1>
           <p className="login-subtitle">{t('offline.subtitle')}</p>
         </div>
-        
+
         <div style={{ background: 'var(--warning-light)', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1.5rem' }}>
           <p style={{ color: 'var(--warning)', fontSize: '0.9rem' }}>
             {t('offline.message')}
           </p>
         </div>
-        
+
         <button className="btn btn-primary btn-block" onClick={onRetry}>
           🔄 {t('offline.retry')}
         </button>
-        
+
         <SmallAdPlaceholder />
-        
+
         <p className="text-xs text-gray" style={{ marginTop: '1rem' }}>
           {t('offline.hint')}
         </p>
@@ -2709,20 +2709,20 @@ const App: React.FC = () => {
 
   useEffect(() => {
     initSyncService({ backendUrl: 'http://localhost:8080/api' });
-    
+
     // Listen for online/offline changes
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
+
     const hash = window.location.hash.slice(1);
     if (hash === 'admin') { setIsAdmin(true); return; }
     if (hash) {
       const u = mockApi.getUser(hash);
       if (u) setUser(u);
     }
-    
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -2761,13 +2761,13 @@ const App: React.FC = () => {
 
   const handleSaveEstimate = (e: Estimate) => {
     if (!user) return;
-    if (editingEstimate) { 
+    if (editingEstimate) {
       mockApi.updateEstimate(user.uniqueId, e.id, e);
       queueOperation({
         type: 'UPDATE_ESTIMATE',
         payload: { uniqueId: user.uniqueId, estimateId: e.id, updates: e }
       });
-    } else { 
+    } else {
       mockApi.createEstimate(user.uniqueId, e);
       queueOperation({
         type: 'CREATE_ESTIMATE',
@@ -2809,10 +2809,10 @@ const App: React.FC = () => {
           </div>
         </header>
         <main className="main">
-          <EstimateEditor 
-            user={user} 
-            estimate={editingEstimate} 
-            onSave={handleSaveEstimate} 
+          <EstimateEditor
+            user={user}
+            estimate={editingEstimate}
+            onSave={handleSaveEstimate}
             onCancel={handleCancelEdit}
             onUserUpdate={handleUpdate}
           />
@@ -2830,20 +2830,20 @@ const App: React.FC = () => {
           <div className="logo-text">{t('appName').replace('Pro', '')}<span>Pro</span></div>
         </div>
         <nav className="sidebar-nav">
-          <button 
-            className={`sidebar-nav-item ${tab === 'estimates' ? 'active' : ''}`} 
+          <button
+            className={`sidebar-nav-item ${tab === 'estimates' ? 'active' : ''}`}
             onClick={() => setTab('estimates')}
           >
             📊 {t('nav.estimates')}
           </button>
-          <button 
-            className={`sidebar-nav-item ${tab === 'templates' ? 'active' : ''}`} 
+          <button
+            className={`sidebar-nav-item ${tab === 'templates' ? 'active' : ''}`}
             onClick={() => setTab('templates')}
           >
             📋 {t('nav.templates')}
           </button>
-          <button 
-            className={`sidebar-nav-item ${tab === 'settings' ? 'active' : ''}`} 
+          <button
+            className={`sidebar-nav-item ${tab === 'settings' ? 'active' : ''}`}
             onClick={() => setTab('settings')}
           >
             ⚙️ {t('nav.settings')}
@@ -2860,11 +2860,11 @@ const App: React.FC = () => {
           </div>
         </div>
       </aside>
-      
+
       {/* Main Content */}
       <div className="app-content">
         <div className="construction-stripe" />
-        
+
         {/* Mobile Header */}
         <header className="header desktop-hidden">
           <div className="header-content">
@@ -2880,7 +2880,7 @@ const App: React.FC = () => {
             </div>
           </div>
         </header>
-        
+
         {/* Mobile Navigation */}
         <nav className="nav desktop-hidden">
           <div className="nav-tabs">
@@ -2889,7 +2889,7 @@ const App: React.FC = () => {
             <button className={`nav-tab ${tab === 'settings' ? 'active' : ''}`} onClick={() => setTab('settings')}>⚙️ {t('nav.settings')}</button>
           </div>
         </nav>
-        
+
         <main className="main" key={refreshKey}>
           {tab === 'estimates' && <EstimatesView user={user} onUpdate={handleUpdate} onEdit={handleEditEstimate} />}
           {tab === 'templates' && <TemplatesView user={user} onUpdate={handleUpdate} />}

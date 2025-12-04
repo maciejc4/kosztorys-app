@@ -131,13 +131,13 @@ export interface UserData {
 }
 
 export const UNIT_LABELS: Record<UnitType, string> = {
-  RUNNING_METER: 'RUNNING_METER',
+  RUNNING_METER: 'mb',
   SQUARE_METER: 'm²',
   PIECE: 'szt.',
   HOUR: 'godz.',
   SET: 'kpl.',
-  LITER: 'LITER',
-  KILOGRAM: 'KILOGRAM'
+  LITER: 'l',
+  KILOGRAM: 'kg'
 };
 
 // Default item templates
