@@ -1,5 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { STORAGE_KEYS } from '../config';
 
 const resources = {
   pl: {
@@ -7,14 +8,14 @@ const resources = {
       // App
       appName: 'KosztorysPro',
       appSubtitle: 'Profesjonalne wyceny dla firm remontowych',
-      
+
       // Navigation
       nav: {
         estimates: 'Kosztorysy',
         templates: 'Szablony',
         settings: 'Ustawienia'
       },
-      
+
       // Common
       common: {
         save: 'Zapisz',
@@ -49,7 +50,7 @@ const resources = {
         notes: 'Notatki',
         notesPlaceholder: 'Dodatkowe uwagi, warunki płatności, terminy...'
       },
-      
+
       // Login
       login: {
         companyName: 'Nazwa firmy',
@@ -70,7 +71,7 @@ const resources = {
         enterId: 'Podaj ID użytkownika',
         demoNotice: 'Konto demo - dane są automatycznie usuwane po {{hours}}h'
       },
-      
+
       // Templates
       templates: {
         items: 'Pozycje',
@@ -107,7 +108,7 @@ const resources = {
         itemAlreadyAdded: 'Ta pozycja jest już dodana',
         workCategory: 'Kategoria pracy'
       },
-      
+
       // Estimates
       estimates: {
         title: 'Kosztorysy',
@@ -161,7 +162,7 @@ const resources = {
         discountsOptional: 'Rabaty (opcjonalne)',
         notesOptional: 'Notatki (opcjonalne)'
       },
-      
+
       // PDF
       pdf: {
         export: 'Eksport PDF',
@@ -175,7 +176,7 @@ const resources = {
         download: 'Pobierz PDF',
         print: 'Drukuj kosztorys'
       },
-      
+
       // Settings
       settings: {
         title: 'Ustawienia',
@@ -203,14 +204,14 @@ const resources = {
         phoneNumberHint: 'Numer kontaktowy wyświetlany w stopce kosztorysu - pozwala klientowi łatwo się z Tobą skontaktować',
         logout: 'Wyloguj'
       },
-      
+
       // Validation
       validation: {
         requiredField: 'To pole jest wymagane',
         requiredFieldsInfo: 'Pola oznaczone * są wymagane',
         fillRequiredFields: 'Wypełnij wymagane pola, aby kontynuować'
       },
-      
+
       // Table view
       tableView: {
         toggle: 'Widok tabeli',
@@ -224,7 +225,7 @@ const resources = {
         deleteSelected: 'Usuń zaznaczone',
         selectedCount: 'Zaznaczono: {{count}}'
       },
-      
+
       // Units
       units: {
         mb: 'mb',
@@ -235,7 +236,7 @@ const resources = {
         l: 'l',
         kg: 'kg'
       },
-      
+
       // Room types
       roomTypes: {
         lazienka: 'Łazienka',
@@ -248,7 +249,7 @@ const resources = {
         dach_skosny: 'Dach skośny',
         inne: 'Inne'
       },
-      
+
       // Sync
       sync: {
         offline: 'Offline',
@@ -257,7 +258,7 @@ const resources = {
         error: 'Błąd synchronizacji',
         synced: 'Zsynchronizowano'
       },
-      
+
       // Offline screen
       offline: {
         title: 'Brak połączenia',
@@ -268,18 +269,18 @@ const resources = {
       }
     }
   },
-  
+
   en: {
     translation: {
       appName: 'CostEstimatePro',
       appSubtitle: 'Professional estimates for renovation companies',
-      
+
       nav: {
         estimates: 'Estimates',
         templates: 'Templates',
         settings: 'Settings'
       },
-      
+
       common: {
         save: 'Save',
         cancel: 'Cancel',
@@ -313,7 +314,7 @@ const resources = {
         notes: 'Notes',
         notesPlaceholder: 'Additional remarks, payment terms, deadlines...'
       },
-      
+
       login: {
         companyName: 'Company name',
         companyPlaceholder: 'e.g. Best Renovations Ltd',
@@ -333,7 +334,7 @@ const resources = {
         enterId: 'Enter user ID',
         demoNotice: 'Demo account - data is automatically deleted after {{hours}}h'
       },
-      
+
       templates: {
         items: 'Items',
         works: 'Works',
@@ -369,7 +370,7 @@ const resources = {
         itemAlreadyAdded: 'This item is already added',
         workCategory: 'Work category'
       },
-      
+
       estimates: {
         title: 'Estimates',
         new: 'New estimate',
@@ -422,7 +423,7 @@ const resources = {
         discountsOptional: 'Discounts (optional)',
         notesOptional: 'Notes (optional)'
       },
-      
+
       pdf: {
         export: 'PDF Export',
         detailLevel: 'Detail level',
@@ -435,7 +436,7 @@ const resources = {
         download: 'Download PDF',
         print: 'Print estimate'
       },
-      
+
       settings: {
         title: 'Settings',
         companyName: 'Company name',
@@ -462,13 +463,13 @@ const resources = {
         phoneNumberHint: 'Contact number displayed in estimate footer - allows clients to easily contact you',
         logout: 'Logout'
       },
-      
+
       validation: {
         requiredField: 'This field is required',
         requiredFieldsInfo: 'Fields marked with * are required',
         fillRequiredFields: 'Fill in required fields to continue'
       },
-      
+
       tableView: {
         toggle: 'Table view',
         listView: 'List',
@@ -481,7 +482,7 @@ const resources = {
         deleteSelected: 'Delete selected',
         selectedCount: 'Selected: {{count}}'
       },
-      
+
       units: {
         mb: 'lm',
         m2: 'm²',
@@ -491,7 +492,7 @@ const resources = {
         l: 'l',
         kg: 'kg'
       },
-      
+
       roomTypes: {
         lazienka: 'Bathroom',
         kuchnia: 'Kitchen',
@@ -503,7 +504,7 @@ const resources = {
         dach_skosny: 'Sloped roof',
         inne: 'Other'
       },
-      
+
       sync: {
         offline: 'Offline',
         syncing: 'Syncing...',
@@ -511,7 +512,7 @@ const resources = {
         error: 'Sync error',
         synced: 'Synced'
       },
-      
+
       offline: {
         title: 'No Connection',
         subtitle: 'This app requires internet access',
@@ -521,18 +522,18 @@ const resources = {
       }
     }
   },
-  
+
   de: {
     translation: {
       appName: 'KostenvoranschlagPro',
       appSubtitle: 'Professionelle Kostenvoranschläge für Renovierungsfirmen',
-      
+
       nav: {
         estimates: 'Kostenvoranschläge',
         templates: 'Vorlagen',
         settings: 'Einstellungen'
       },
-      
+
       common: {
         save: 'Speichern',
         cancel: 'Abbrechen',
@@ -560,7 +561,7 @@ const resources = {
         quickAdd: 'Schnell hinzufügen',
         currency: '€'
       },
-      
+
       login: {
         companyName: 'Firmenname',
         companyPlaceholder: 'z.B. Renovierungs GmbH',
@@ -580,7 +581,7 @@ const resources = {
         enterId: 'Benutzer-ID eingeben',
         demoNotice: 'Demo-Konto - Daten werden nach {{hours}}h automatisch gelöscht'
       },
-      
+
       templates: {
         items: 'Positionen',
         works: 'Arbeiten',
@@ -616,7 +617,7 @@ const resources = {
         itemAlreadyAdded: 'Diese Position wurde bereits hinzugefügt',
         workCategory: 'Arbeitskategorie'
       },
-      
+
       estimates: {
         title: 'Kostenvoranschläge',
         new: 'Neuer Kostenvoranschlag',
@@ -651,7 +652,7 @@ const resources = {
         createWorkInline: 'Neue Arbeit erstellen',
         noEstimates: 'Keine Kostenvoranschläge'
       },
-      
+
       pdf: {
         export: 'PDF-Export',
         detailLevel: 'Detailstufe',
@@ -663,7 +664,7 @@ const resources = {
         detailedDesc: 'Vollständige Spezifikation mit Preisen',
         download: 'PDF herunterladen'
       },
-      
+
       settings: {
         title: 'Einstellungen',
         companyName: 'Firmenname',
@@ -682,7 +683,7 @@ const resources = {
         dataLocal: 'Daten lokal gespeichert',
         retention: 'Aufbewahrung'
       },
-      
+
       units: {
         mb: 'lfm',
         m2: 'm²',
@@ -692,7 +693,7 @@ const resources = {
         l: 'l',
         kg: 'kg'
       },
-      
+
       roomTypes: {
         lazienka: 'Badezimmer',
         kuchnia: 'Küche',
@@ -704,7 +705,7 @@ const resources = {
         dach_skosny: 'Schrägdach',
         inne: 'Andere'
       },
-      
+
       sync: {
         offline: 'Offline',
         syncing: 'Synchronisieren...',
@@ -712,7 +713,7 @@ const resources = {
         error: 'Sync-Fehler',
         synced: 'Synchronisiert'
       },
-      
+
       offline: {
         title: 'Keine Verbindung',
         subtitle: 'Diese App erfordert Internetzugang',
@@ -722,18 +723,18 @@ const resources = {
       }
     }
   },
-  
+
   fr: {
     translation: {
       appName: 'DevisPro',
       appSubtitle: 'Devis professionnels pour entreprises de rénovation',
-      
+
       nav: {
         estimates: 'Devis',
         templates: 'Modèles',
         settings: 'Paramètres'
       },
-      
+
       common: {
         save: 'Enregistrer',
         cancel: 'Annuler',
@@ -761,7 +762,7 @@ const resources = {
         quickAdd: 'Ajout rapide',
         currency: '€'
       },
-      
+
       login: {
         companyName: 'Nom de l\'entreprise',
         companyPlaceholder: 'ex. Rénovations Dupont',
@@ -781,7 +782,7 @@ const resources = {
         enterId: 'Entrez l\'ID utilisateur',
         demoNotice: 'Compte démo - les données sont automatiquement supprimées après {{hours}}h'
       },
-      
+
       templates: {
         items: 'Éléments',
         works: 'Travaux',
@@ -817,7 +818,7 @@ const resources = {
         itemAlreadyAdded: 'Cet élément a déjà été ajouté',
         workCategory: 'Catégorie de travail'
       },
-      
+
       estimates: {
         title: 'Devis',
         new: 'Nouveau devis',
@@ -852,7 +853,7 @@ const resources = {
         createWorkInline: 'Créer nouveau travail',
         noEstimates: 'Aucun devis'
       },
-      
+
       pdf: {
         export: 'Export PDF',
         detailLevel: 'Niveau de détail',
@@ -864,7 +865,7 @@ const resources = {
         detailedDesc: 'Spécification complète avec prix',
         download: 'Télécharger PDF'
       },
-      
+
       settings: {
         title: 'Paramètres',
         companyName: 'Nom de l\'entreprise',
@@ -883,7 +884,7 @@ const resources = {
         dataLocal: 'Données stockées localement',
         retention: 'Rétention'
       },
-      
+
       units: {
         mb: 'ml',
         m2: 'm²',
@@ -893,7 +894,7 @@ const resources = {
         l: 'l',
         kg: 'kg'
       },
-      
+
       roomTypes: {
         lazienka: 'Salle de bain',
         kuchnia: 'Cuisine',
@@ -905,7 +906,7 @@ const resources = {
         dach_skosny: 'Toit en pente',
         inne: 'Autre'
       },
-      
+
       sync: {
         offline: 'Hors ligne',
         syncing: 'Synchronisation...',
@@ -913,7 +914,7 @@ const resources = {
         error: 'Erreur de sync',
         synced: 'Synchronisé'
       },
-      
+
       offline: {
         title: 'Pas de connexion',
         subtitle: 'Cette application nécessite un accès Internet',
@@ -927,11 +928,11 @@ const resources = {
 
 // Detect browser language
 const getBrowserLanguage = (): string => {
-  const stored = localStorage.getItem('kosztorys_language');
+  const stored = localStorage.getItem(STORAGE_KEYS.LANGUAGE);
   if (stored && ['pl', 'en', 'de', 'fr'].includes(stored)) {
     return stored;
   }
-  
+
   const browserLang = navigator.language.split('-')[0];
   return ['pl', 'en', 'de', 'fr'].includes(browserLang) ? browserLang : 'pl';
 };
@@ -948,7 +949,7 @@ i18n
   });
 
 export const changeLanguage = (lang: string) => {
-  localStorage.setItem('kosztorys_language', lang);
+  localStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);
   i18n.changeLanguage(lang);
 };
 

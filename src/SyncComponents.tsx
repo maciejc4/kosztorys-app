@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  initSyncService, 
-  subscribeSyncState, 
-  getSyncState, 
+import {
+  initSyncService,
+  subscribeSyncState,
+  getSyncState,
   triggerSync,
-  SyncState 
+  SyncState
 } from './syncService';
+import { DEFAULT_SYNC_CONFIG } from './config';
 
 /**
  * Hook do obsługi stanu synchronizacji w komponentach React.
@@ -35,7 +36,7 @@ export const SyncStatusIndicator: React.FC = () => {
         className: 'sync-status offline'
       };
     }
-    
+
     if (syncState.isSyncing) {
       return {
         icon: '🔄',
@@ -43,7 +44,7 @@ export const SyncStatusIndicator: React.FC = () => {
         className: 'sync-status syncing'
       };
     }
-    
+
     if (syncState.pendingOperations.length > 0) {
       return {
         icon: '⏳',
@@ -51,7 +52,7 @@ export const SyncStatusIndicator: React.FC = () => {
         className: 'sync-status pending'
       };
     }
-    
+
     if (syncState.syncErrors.length > 0) {
       return {
         icon: '⚠️',
@@ -59,7 +60,7 @@ export const SyncStatusIndicator: React.FC = () => {
         className: 'sync-status error'
       };
     }
-    
+
     return {
       icon: '✅',
       text: 'Zsynchronizowano',
@@ -76,10 +77,10 @@ export const SyncStatusIndicator: React.FC = () => {
   };
 
   return (
-    <button 
+    <button
       className={status.className}
       onClick={handleClick}
-      title={syncState.lastSyncTime 
+      title={syncState.lastSyncTime
         ? `Ostatnia synchronizacja: ${new Date(syncState.lastSyncTime).toLocaleTimeString('pl-PL')}`
         : 'Kliknij aby zsynchronizować'
       }
@@ -93,9 +94,9 @@ export const SyncStatusIndicator: React.FC = () => {
 /**
  * Komponent inicjalizujący synchronizację.
  */
-export const SyncProvider: React.FC<{ children: React.ReactNode; backendUrl?: string }> = ({ 
-  children, 
-  backendUrl = 'http://localhost:8080/api' 
+export const SyncProvider: React.FC<{ children: React.ReactNode; backendUrl?: string }> = ({
+  children,
+  backendUrl = DEFAULT_SYNC_CONFIG.backendUrl
 }) => {
   useEffect(() => {
     initSyncService({ backendUrl });

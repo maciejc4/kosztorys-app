@@ -2,10 +2,9 @@
 import { UserData, Estimate, ItemTemplate, WorkTemplate, RoomRenovationTemplate, DEFAULT_ITEM_TEMPLATES, DEFAULT_WORK_TEMPLATES, DEFAULT_ROOM_RENOVATION_TEMPLATES } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { queueOperation } from './syncService';
-import { DEFAULT_API_CONFIG, STORAGE_KEYS, CLEANUP_CONFIG } from './config';
-import type { ApiConfig } from './config';
+import { ApiConfig, DEFAULT_API_CONFIG, STORAGE_KEYS, CLEANUP_CONFIG } from './config';
 
-// Re-export ApiConfig type
+// Re-export ApiConfig for external use
 export type { ApiConfig };
 
 let config: ApiConfig = { ...DEFAULT_API_CONFIG };
@@ -16,8 +15,11 @@ export const setApiConfig = (newConfig: Partial<ApiConfig>) => {
 
 export const getApiConfig = (): ApiConfig => ({ ...config });
 
+// Storage key from centralized config
+const STORAGE_KEY = STORAGE_KEYS.USERS;
+
 const getLocalUsers = (): Record<string, UserData> => {
-  const data = localStorage.getItem(STORAGE_KEYS.USERS);
+  const data = localStorage.getItem(STORAGE_KEY);
   return data ? JSON.parse(data) : {};
 };
 

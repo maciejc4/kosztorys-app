@@ -1,9 +1,8 @@
 // Synchronization Service - obsługa offline/online synchronizacji
 import { UserData, Estimate, ItemTemplate, WorkTemplate, RoomRenovationTemplate } from './types';
-import { STORAGE_KEYS, DEFAULT_SYNC_CONFIG } from './config';
-import type { SyncConfig } from './config';
+import { SyncConfig, DEFAULT_SYNC_CONFIG, STORAGE_KEYS } from './config';
 
-// Re-export SyncConfig type
+// Re-export SyncConfig for external use
 export type { SyncConfig };
 
 // Transform data for backend - converts roomType/roomTypes to uppercase
@@ -29,7 +28,7 @@ const transformForBackend = <T>(data: T): T => {
 };
 
 // Typy operacji synchronizacji
-export type SyncOperation = 
+export type SyncOperation =
   | { type: 'CREATE_USER'; payload: { username: string; useDefaultData: boolean } }
   | { type: 'UPDATE_USER'; payload: { uniqueId: string; updates: Partial<UserData> } }
   | { type: 'CREATE_ESTIMATE'; payload: { uniqueId: string; estimate: Estimate } }
@@ -76,23 +75,23 @@ export const initSyncService = (config?: Partial<SyncConfig>): void => {
   if (config) {
     syncConfig = { ...syncConfig, ...config };
   }
-  
+
   // Załaduj oczekujące operacje z localStorage
   loadPendingOperations();
-  
+
   // Załaduj ostatni czas synchronizacji
   const lastSync = localStorage.getItem(STORAGE_KEYS.LAST_SYNC);
   if (lastSync) {
     syncState.lastSyncTime = parseInt(lastSync, 10);
   }
-  
+
   // Nasłuchuj na zmiany stanu sieci
   window.addEventListener('online', handleOnline);
   window.addEventListener('offline', handleOffline);
-  
+
   // Rozpocznij automatyczną synchronizację
   startAutoSync();
-  
+
   // Jeśli online, spróbuj zsynchronizować
   if (navigator.onLine) {
     triggerSync();
@@ -103,7 +102,7 @@ export const initSyncService = (config?: Partial<SyncConfig>): void => {
 export const stopSyncService = (): void => {
   window.removeEventListener('online', handleOnline);
   window.removeEventListener('offline', handleOffline);
-  
+
   if (syncInterval) {
     clearInterval(syncInterval);
     syncInterval = null;
@@ -114,7 +113,7 @@ export const stopSyncService = (): void => {
 export const subscribeSyncState = (listener: (state: SyncState) => void): () => void => {
   syncListeners.push(listener);
   listener(syncState); // Natychmiast wywołaj z aktualnym stanem
-  
+
   return () => {
     syncListeners = syncListeners.filter(l => l !== listener);
   };
@@ -144,11 +143,11 @@ export const queueOperation = (operation: SyncOperation): void => {
     timestamp: Date.now(),
     retryCount: 0
   };
-  
+
   const pending = [...syncState.pendingOperations, pendingOp];
   updateState({ pendingOperations: pending });
   savePendingOperations();
-  
+
   // Jeśli online, spróbuj zsynchronizować
   if (syncState.isOnline && !syncState.isSyncing) {
     triggerSync();
@@ -192,24 +191,24 @@ export const triggerSync = async (): Promise<void> => {
   if (!syncState.isOnline || syncState.isSyncing) {
     return;
   }
-  
+
   const backendAvailable = await checkBackendAvailability();
   if (!backendAvailable) {
     return;
   }
-  
+
   updateState({ isSyncing: true, syncErrors: [] });
-  
+
   const errors: string[] = [];
   const successfulOps: string[] = [];
-  
+
   for (const pendingOp of syncState.pendingOperations) {
     try {
       await executeSyncOperation(pendingOp.operation);
       successfulOps.push(pendingOp.id);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       if (pendingOp.retryCount >= syncConfig.maxRetries) {
         errors.push(`Operation ${pendingOp.operation.type} failed after ${syncConfig.maxRetries} retries: ${errorMessage}`);
         successfulOps.push(pendingOp.id); // Usuń po przekroczeniu limitu prób
@@ -219,17 +218,17 @@ export const triggerSync = async (): Promise<void> => {
       }
     }
   }
-  
+
   // Usuń pomyślnie wykonane operacje
   const remaining = syncState.pendingOperations.filter(op => !successfulOps.includes(op.id));
-  
+
   updateState({
     isSyncing: false,
     lastSyncTime: Date.now(),
     pendingOperations: remaining,
     syncErrors: errors
   });
-  
+
   savePendingOperations();
   localStorage.setItem(STORAGE_KEYS.LAST_SYNC, Date.now().toString());
 };
@@ -237,7 +236,7 @@ export const triggerSync = async (): Promise<void> => {
 // Wykonaj pojedynczą operację synchronizacji
 const executeSyncOperation = async (operation: SyncOperation): Promise<void> => {
   const baseUrl = syncConfig.backendUrl;
-  
+
   switch (operation.type) {
     case 'CREATE_USER':
       await fetch(`${baseUrl}/users`, {
@@ -246,7 +245,7 @@ const executeSyncOperation = async (operation: SyncOperation): Promise<void> => 
         body: JSON.stringify(transformForBackend(operation.payload))
       });
       break;
-      
+
     case 'UPDATE_USER':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}`, {
         method: 'PUT',
@@ -254,7 +253,7 @@ const executeSyncOperation = async (operation: SyncOperation): Promise<void> => 
         body: JSON.stringify(transformForBackend(operation.payload.updates))
       });
       break;
-      
+
     case 'CREATE_ESTIMATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/estimates`, {
         method: 'POST',
@@ -262,7 +261,7 @@ const executeSyncOperation = async (operation: SyncOperation): Promise<void> => 
         body: JSON.stringify(transformForBackend(operation.payload.estimate))
       });
       break;
-      
+
     case 'UPDATE_ESTIMATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/estimates/${operation.payload.estimateId}`, {
         method: 'PUT',
@@ -270,13 +269,13 @@ const executeSyncOperation = async (operation: SyncOperation): Promise<void> => 
         body: JSON.stringify(transformForBackend(operation.payload.updates))
       });
       break;
-      
+
     case 'DELETE_ESTIMATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/estimates/${operation.payload.estimateId}`, {
         method: 'DELETE'
       });
       break;
-      
+
     case 'ADD_ITEM_TEMPLATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/items`, {
         method: 'POST',
@@ -284,7 +283,7 @@ const executeSyncOperation = async (operation: SyncOperation): Promise<void> => 
         body: JSON.stringify(transformForBackend({ ...operation.payload.template, localId: operation.payload.localId }))
       });
       break;
-      
+
     case 'UPDATE_ITEM_TEMPLATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/items/${operation.payload.templateId}`, {
         method: 'PUT',
@@ -292,13 +291,13 @@ const executeSyncOperation = async (operation: SyncOperation): Promise<void> => 
         body: JSON.stringify(transformForBackend(operation.payload.updates))
       });
       break;
-      
+
     case 'DELETE_ITEM_TEMPLATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/items/${operation.payload.templateId}`, {
         method: 'DELETE'
       });
       break;
-      
+
     case 'ADD_WORK_TEMPLATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/works`, {
         method: 'POST',
@@ -306,7 +305,7 @@ const executeSyncOperation = async (operation: SyncOperation): Promise<void> => 
         body: JSON.stringify(transformForBackend({ ...operation.payload.template, localId: operation.payload.localId }))
       });
       break;
-      
+
     case 'UPDATE_WORK_TEMPLATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/works/${operation.payload.templateId}`, {
         method: 'PUT',
@@ -314,13 +313,13 @@ const executeSyncOperation = async (operation: SyncOperation): Promise<void> => 
         body: JSON.stringify(transformForBackend(operation.payload.updates))
       });
       break;
-      
+
     case 'DELETE_WORK_TEMPLATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/works/${operation.payload.templateId}`, {
         method: 'DELETE'
       });
       break;
-      
+
     case 'ADD_RENOVATION_TEMPLATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/renovations`, {
         method: 'POST',
@@ -328,7 +327,7 @@ const executeSyncOperation = async (operation: SyncOperation): Promise<void> => 
         body: JSON.stringify(transformForBackend({ ...operation.payload.template, localId: operation.payload.localId }))
       });
       break;
-      
+
     case 'UPDATE_RENOVATION_TEMPLATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/renovations/${operation.payload.templateId}`, {
         method: 'PUT',
@@ -336,7 +335,7 @@ const executeSyncOperation = async (operation: SyncOperation): Promise<void> => 
         body: JSON.stringify(transformForBackend(operation.payload.updates))
       });
       break;
-      
+
     case 'DELETE_RENOVATION_TEMPLATE':
       await fetch(`${baseUrl}/users/${operation.payload.uniqueId}/renovations/${operation.payload.templateId}`, {
         method: 'DELETE'
@@ -352,11 +351,11 @@ export const fetchUserFromBackend = async (uniqueId: string): Promise<UserData |
       headers: { 'Accept': 'application/json' },
       signal: AbortSignal.timeout(10000)
     });
-    
+
     if (!response.ok) {
       return null;
     }
-    
+
     return await response.json();
   } catch {
     return null;
@@ -366,22 +365,22 @@ export const fetchUserFromBackend = async (uniqueId: string): Promise<UserData |
 // Synchronizacja pełnych danych użytkownika z backendem
 export const syncUserData = async (localUser: UserData): Promise<UserData> => {
   const backendAvailable = await checkBackendAvailability();
-  
+
   if (!backendAvailable) {
     return localUser; // Zwróć lokalne dane jeśli backend niedostępny
   }
-  
+
   try {
     const response = await fetch(`${syncConfig.backendUrl}/users/${localUser.uniqueId}/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(transformForBackend(localUser))
     });
-    
+
     if (!response.ok) {
       return localUser;
     }
-    
+
     return await response.json();
   } catch {
     return localUser;
@@ -393,7 +392,7 @@ const startAutoSync = (): void => {
   if (syncInterval) {
     clearInterval(syncInterval);
   }
-  
+
   syncInterval = window.setInterval(() => {
     if (syncState.isOnline && syncState.pendingOperations.length > 0) {
       triggerSync();
@@ -410,7 +409,7 @@ export const getSyncConfig = (): SyncConfig => ({ ...syncConfig });
 // Aktualizuj konfigurację
 export const updateSyncConfig = (config: Partial<SyncConfig>): void => {
   syncConfig = { ...syncConfig, ...config };
-  
+
   // Zrestartuj auto sync z nowym interwałem
   if (config.syncIntervalMs) {
     startAutoSync();
